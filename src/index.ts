@@ -22,13 +22,18 @@ import isImage from 'is-image';
 import logger from './logger';
 
 /**
- * Settings
+ * Environment Variables
  */
 dotenv.config();
-const app: Application = express();
-const db: RedisClient = redis.createClient();
 const url: string = process.env.ROOT_URL || 'http://localhost:5000';
 const port: string = process.env.PORT || '5000';
+const redis_url: string = process.env.REDIS_URL || '';
+
+/**
+ * App settings
+ */
+const app: Application = express();
+const db: RedisClient = redis.createClient(redis_url);
 
 /**
  * Fallback for database error
