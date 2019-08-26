@@ -1,17 +1,12 @@
-function clearSelection() {
-  if (window.getSelection) {
-    window.getSelection().removeAllRanges();
-  } else if (document.selection) {
-    document.selection.empty();
-  }
-}
+function copyLink(link) {
+  const copyText = `jsa.life/${link}`;
+  const listener = (e) => {
+    e.clipboardData.setData('text/plain' , copyText);
+    e.preventDefault();
+    document.removeEventListener('copy', listener);
+  };
 
-function copyLink() {
-  const target = document.getElementById('shortened-url');
-  const range = document.createRange();
-  range.selectNode(target);
-  window.getSelection().addRange(range);
+  document.addEventListener('copy' , listener);
   document.execCommand('copy');
   M.toast({html: 'Link copied!'});
-  clearSelection();
 }
