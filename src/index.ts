@@ -11,7 +11,7 @@ import http from 'http';
 import dotenv from 'dotenv';
 import express, { Application, Request, Response } from 'express';
 import bodyParser from 'body-parser';
-import redis, { RedisClient, RedisError } from 'redis';
+import redis, { RedisClient } from 'redis';
 import validator from 'validator';
 import randomstring from 'randomstring';
 import isImage from 'is-image';
@@ -33,7 +33,7 @@ const port: string = process.env.PORT || '5000';
 /**
  * Fallback for database error
  */
-db.on('error', (err: RedisError) => {
+db.on('error', (err: Error) => {
   logger.error('Redis error', err);
 });
 
@@ -107,7 +107,7 @@ app.post('/', (req: Request, res: Response) => {
 
   // Passed validator. Check for existence.
   } else {
-    db.get(short, (err: RedisError, predecessor: string) => {
+    db.get(short, (err: Error | null, predecessor: string) => {
       // There was a DB error
       if (err) {
         logger.error('Redis error in /', err);
@@ -140,9 +140,9 @@ app.post('/', (req: Request, res: Response) => {
  * Redirect to home page if not.
  */
 app.all('/:short', (req: Request, res: Response) => {
-  const { short }: { short: string } = req.params;
+  const { short } = req.params;
   logger.info(`Trying to redirect ${short}`);
-  db.get(short, (err: RedisError, original: string) => {
+  db.get(short, (err: Error | null, original: string) => {
     if (err) {
       logger.error('Redis error in /:short', err);
       res.render('index', {
@@ -158,9 +158,12 @@ app.all('/:short', (req: Request, res: Response) => {
   });
 });
 
+/**
+ * 404
+ */
 app.all('*', (req: Request, res: Response) => {
   const dirPath = path.join(__dirname, '../public/assets/404');
-  fs.readdir(dirPath, function (err, files) {
+  fs.readdir(dirPath, (err, files) => {
     if (err) {
       res.render('404');
     } else {
@@ -168,7 +171,7 @@ app.all('*', (req: Request, res: Response) => {
       const randomIndex: number = Math.floor(Math.random() * images.length);
       const selectedImg: string = images[randomIndex];
       res.render('404', {
-        img: `/assets/404/${selectedImg}`
+        img: `/assets/404/${selectedImg}`,
       });
     }
   });
