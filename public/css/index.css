@@ -28,6 +28,12 @@ a:hover {
   max-height: 60vh;
 }
 
+.hidden {
+  position: fixed;
+  left: -100px;
+  top: -100px
+}
+
 .required {
   color: #ffcdd1;
   font-size: 0.8em;

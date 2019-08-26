@@ -10,13 +10,14 @@
   typeof original !== 'undefined'
   && typeof short !== 'undefined'
 ) { %>
+  <div id="forCopy"></div>
   <div class="shortened-modal">
     <p class="truncate original-url">
       <%= original %>
     </p>
     <p>was shortened to:</p>
-    <button class="link-button" onclick="copyLink('<%= short %>')">
-      <h4 class="red-text text-lighten-4" id="shortened-url">jsa.life/<%= short %></h4>
+    <button class="link-button" onclick="copyLink('jsa.life/<%= short %>')">
+      <h4 class="red-text text-lighten-4">jsa.life/<%= short %></h4>
     </button>
     <p>Click on link to copy</p>
   </div>
