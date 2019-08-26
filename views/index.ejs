@@ -14,13 +14,11 @@
     <p class="truncate original-url">
       <%= original %>
     </p>
-    was shortened to:
-    <button class="link-button" onclick="copyLink()">
-      <h4 class="red-text text-lighten-4" id="shortened-url">
-        jsa.life/<%= short %>
-      </h4>
+    <p>was shortened to:</p>
+    <button class="link-button" onclick="copyLink('<%= short %>')">
+      <h4 class="red-text text-lighten-4" id="shortened-url">jsa.life/<%= short %></h4>
     </button>
-    Click on link to copy
+    <p>Click on link to copy</p>
   </div>
   <br>
 <% } %>
