@@ -1,0 +1,19 @@
+<%- include('header'); -%>
+
+<br class="hide-on-small-only">
+<br class="hide-on-small-only">
+<br>
+
+<% if (typeof img === 'undefined') { %>
+  <h1>404</h1>
+<% } else { %>
+  <img alt="404" src="<%= img %>" class="notfound-image">
+<% } %>
+
+<p>
+  Please contact
+  <a href="mailto:rkhorana@alumni.cmu.edu" target="_blank">here</a>
+  if you think this is a mistake!
+</p>
+
+<%- include('footer'); -%>

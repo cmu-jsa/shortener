@@ -1,0 +1,106 @@
+html {
+  background: #222222;
+  color: #eeeeee;
+}
+
+h4 {
+  margin: 1rem 0;
+}
+
+a {
+  color: #ffcdd1;
+  text-decoration: underline;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+.notfound-image {
+  max-width: 90vw;
+  max-height: 60vh;
+}
+
+.required {
+  color: #ffcdd1;
+  font-size: 0.8em;
+}
+
+.shortened-modal {
+  background: #303030;
+  border-radius: 15px;
+  padding: 2em;
+}
+
+.original-url {
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
+.link-button {
+  display: block;
+  margin: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.link-button:focus {
+  background: none;
+}
+
+.toast-red {
+  background: #9c3f3f;
+}
+
+.footer-logo {
+  position: fixed;
+  width: 10vw;
+  height: 10vw;
+  min-width: 90px;
+  min-height: 90px;
+  right: 15px;
+  bottom: 15px;
+}
+
+/**
+ * Customize Materialize default color
+ */
+
+.btn-large {
+  background: linear-gradient(#202020, #181818);
+  border: 1px solid #484848;
+  color: #eeeeee;
+  box-shadow: none;
+  border-radius: 8px;
+}
+
+.btn-large:hover {
+  background: linear-gradient(#303030, #282828);
+  box-shadow: none;
+}
+
+.input-field input {
+  color: #eeeeee;
+}
+
+/* label color */
+.input-field label {
+  color: #555555;
+}
+
+/* label focus color */
+.input-field input[type=text]:focus + label {
+  color: #cccccc !important;
+}
+
+/* label underline focus color */
+.input-field input[type=text]:focus {
+  border-bottom: 1px solid #eeeeee !important;
+  box-shadow: 0 1px 0 0 #555555 !important;
+}
+
+.input-field .helper-text {
+  color: #eeeeee;
+}
