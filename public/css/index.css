@@ -137,6 +137,17 @@ a {
   box-shadow: 0 1px 0 0 #555555 !important;
 }
 
+/* label focus color */
+.input-field input[type=password]:focus + label {
+  color: #cccccc !important;
+}
+
+/* label underline focus color */
+.input-field input[type=password]:focus {
+  border-bottom: 1px solid #eeeeee !important;
+  box-shadow: 0 1px 0 0 #555555 !important;
+}
+
 .input-field .helper-text {
   color: #eeeeee;
 }
