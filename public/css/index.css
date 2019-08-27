@@ -16,10 +16,6 @@ p {
 
 a {
   color: #ffcdd1;
-  text-decoration: underline;
-}
-
-a:hover {
   text-decoration: none;
 }
 
