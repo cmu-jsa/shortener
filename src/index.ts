@@ -10,6 +10,7 @@ import http from 'http';
  */
 import dotenv from 'dotenv';
 import express, { Application, Request, Response } from 'express';
+import session from 'express-session';
 import bodyParser from 'body-parser';
 import redis, { RedisClient } from 'redis';
 import validator from 'validator';
@@ -27,13 +28,15 @@ import logger from './logger';
 dotenv.config();
 const url: string = process.env.ROOT_URL || 'http://localhost:5000';
 const port: string = process.env.PORT || '5000';
-const redis_url: string = process.env.REDIS_URL || '';
+const redisURL: string = process.env.REDIS_URL || '';
+const adminUser: string = process.env.ADMIN_USER || '';
+const adminPass: string = process.env.ADMIN_PASS || '';
 
 /**
  * App settings
  */
 const app: Application = express();
-const db: RedisClient = redis.createClient(redis_url);
+const db: RedisClient = redis.createClient(redisURL);
 
 /**
  * Fallback for database error
@@ -58,6 +61,14 @@ setInterval(() => {
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 60 * 60 * 1000,
+  },
+}));
 
 /**
  * Views
@@ -112,7 +123,7 @@ app.post('/', (req: Request, res: Response) => {
 
   // Passed validator. Check for existence.
   } else {
-    db.get(short, (err: Error | null, predecessor: string) => {
+    db.hget('s', short, (err: Error | null, predecessor: string) => {
       // There was a DB error
       if (err) {
         logger.error('Redis error in /', err);
@@ -129,7 +140,7 @@ app.post('/', (req: Request, res: Response) => {
 
       // Original didn't exist. Store in DB!
       } else {
-        db.set(short, original);
+        db.hset('s', short, original);
         logger.success(`${short} now redirects to ${original}`);
         res.render('index', {
           original,
@@ -141,13 +152,90 @@ app.post('/', (req: Request, res: Response) => {
 });
 
 /**
+ * GET admin portal
+ * Will return login page if not logged in
+ */
+app.get('/admin', (req: Request, res: Response) => {
+  // @ts-ignore
+  if (req.session.user !== adminUser) {
+    res.render('login');
+  } else {
+    db.hgetall('s', (err: Error | null, response: {}) => {
+      if (err) {
+        logger.error('Redis error in /admin', err);
+      }
+
+      res.render('admin', {
+        originals: response || {},
+      });
+    });
+  }
+});
+
+/**
+ * Check if login credentials match
+ */
+app.post('/admin', (req: Request, res: Response) => {
+  const {
+    username,
+    password,
+  } = req.body;
+  if (username === adminUser && password === adminPass) {
+    // @ts-ignore
+    req.session.user = username;
+    res.redirect('/admin');
+  } else {
+    res.render('login');
+  }
+});
+
+/**
+ * Removes a short: original pair from db
+ */
+app.post('/remove', (req: Request, res: Response) => {
+  // First of all check if the user is logged in properly
+  // @ts-ignore
+  if (req.session.user === adminUser) {
+    const { short } = req.body;
+    db.hget('s', short, (err: Error | null, original: string) => {
+      if (err) {
+        logger.error('Redis error in /remove', err);
+      }
+
+      // Original existed
+      if (original) {
+        db.hdel('s', short);
+      }
+    });
+  }
+
+  res.redirect('/admin');
+});
+
+/**
+ * Will log you out
+ */
+app.post('/logout', (req: Request, res: Response) => {
+  if (req.session) {
+    // @ts-ignore
+    req.session.destroy((err: Error | null) => {
+      if (err) {
+        logger.error('Couldn\'t log out', err);
+      }
+    });
+  }
+
+  res.redirect('/admin');
+});
+
+/**
  * Redirect to original url if short is a valid key.
  * Redirect to home page if not.
  */
 app.all('/:short', (req: Request, res: Response) => {
   const { short } = req.params;
   logger.info(`Trying to redirect ${short}`);
-  db.get(short, (err: Error | null, original: string) => {
+  db.hget('s', short, (err: Error | null, original: string) => {
     if (err) {
       logger.error('Redis error in /:short', err);
       res.render('index', {

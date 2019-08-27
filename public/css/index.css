@@ -1,8 +1,5 @@
 html {
   background: #222222;
-}
-
-h1, h2, h3, h4, h5, p {
   color: #eeeeee;
 }
 
@@ -73,8 +70,38 @@ a {
   bottom: 15px;
 }
 
+.table {
+  table-layout: fixed;
+}
+
+.table-cell {
+  display: table-cell;
+}
+
+.btn-remove {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  padding: 5px 0;
+  background: none;
+  border: none;
+  color: #ffcdd1;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.btn-destroy:hover {
+  background: #323232;
+  border: none;
+}
+
+.btn-destroy:focus {
+  background: #323232;
+  border: none;
+}
+
 /**
- * Customize Materialize default color
+ * Customize Materialize
  */
 
 .btn-large {
