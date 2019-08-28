@@ -146,7 +146,7 @@ app.post('/', (req: Request, res: Response) => {
       // Original didn't exist. Store in DB!
       } else {
         db.hset('s', short, original);
-        db.set(short, 0);
+        db.hset('v', short, 0);
         logger.success(`${short} now redirects to ${original}`);
         res.render('index', {
           original,
@@ -211,7 +211,7 @@ app.post('/remove', (req: Request, res: Response) => {
       // Original existed
       if (original) {
         db.hdel('s', short);
-        db.del(short);
+        db.hdel('v', short);
       }
     });
   }
@@ -257,13 +257,13 @@ app.all('/:short', (req: Request, res: Response) => {
       res.redirect(original);
 
       // Increment page view
-      db.get(short, (err: Error | null) => {
+      db.hget('v', short, (err: Error | null) => {
         if (err) {
-          logger.error('Redis error in /:short get', err);
+          logger.error('Redis error in /:short', err);
         } else {
-          db.incr(short, (err: Error | null) => {
+          db.hincrby('v', short, 1, (err: Error | null) => {
             if (err) {
-              logger.error('Redis error in /:short incr', err);
+              logger.error('Redis error in /:short', err);
             }
           });
         }
