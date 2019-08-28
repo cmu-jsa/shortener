@@ -146,7 +146,7 @@ app.post('/', (req: Request, res: Response) => {
       // Original didn't exist. Store in DB!
       } else {
         db.hset('s', short, original);
-        db.hset('v', short, 0);
+        db.hset('v', short, '0');
         logger.success(`${short} now redirects to ${original}`);
         res.render('index', {
           original,
@@ -161,19 +161,60 @@ app.post('/', (req: Request, res: Response) => {
  * GET admin portal
  * Will return login page if not logged in
  */
+
+interface LinkData {
+  short: string;
+  original: string;
+  views: string;
+}
+
 app.get('/admin', (req: Request, res: Response) => {
   // @ts-ignore
   if (req.session.user !== adminUser) {
     res.render('login');
   } else {
-    db.hgetall('s', (err: Error | null, response: {}) => {
+    db.hgetall('s', (err: Error | null, originals: {}) => {
       if (err) {
         logger.error('Redis error in /admin', err);
       }
 
-      res.render('admin', {
-        originals: response || {},
-      });
+      // No originals exist
+      if (!originals) {
+        res.render('admin', {
+          data: [],
+        });
+      } else {
+        db.hgetall('v', (err2: Error | null, views: {}) => {
+          if (err2) {
+            logger.error('Redis error in /admin', err2);
+          }
+
+          // Create an array of link data sorted by page views
+          const data: LinkData[] = Object.keys(originals)
+            .map((short: string) => ({
+              short,
+              // @ts-ignore
+              original: originals[short],
+              // @ts-ignore
+              views: views[short],
+            }))
+            .sort((a: LinkData, b: LinkData) => {
+              if (a.views > b.views) {
+                return -1;
+              }
+
+              if (a.views < b.views) {
+                return 1;
+              }
+
+              return 0;
+            });
+
+          res.render('admin', {
+            data,
+          });
+        });
+      }
     });
   }
 });
@@ -257,13 +298,13 @@ app.all('/:short', (req: Request, res: Response) => {
       res.redirect(original);
 
       // Increment page view
-      db.hget('v', short, (err: Error | null) => {
-        if (err) {
-          logger.error('Redis error in /:short', err);
+      db.hget('v', short, (err2: Error | null) => {
+        if (err2) {
+          logger.error('Redis error in /:short', err2);
         } else {
-          db.hincrby('v', short, 1, (err: Error | null) => {
-            if (err) {
-              logger.error('Redis error in /:short', err);
+          db.hincrby('v', short, 1, (err3: Error | null) => {
+            if (err3) {
+              logger.error('Redis error in /:short', err3);
             }
           });
         }
