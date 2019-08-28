@@ -90,12 +90,12 @@ a {
   border-radius: 5px;
 }
 
-.btn-destroy:hover {
+.btn-remove:hover {
   background: #323232;
   border: none;
 }
 
-.btn-destroy:focus {
+.btn-remove:focus {
   background: #323232;
   border: none;
 }
