@@ -146,6 +146,7 @@ app.post('/', (req: Request, res: Response) => {
       // Original didn't exist. Store in DB!
       } else {
         db.hset('s', short, original);
+        db.set(short, 0);
         logger.success(`${short} now redirects to ${original}`);
         res.render('index', {
           original,
@@ -210,6 +211,7 @@ app.post('/remove', (req: Request, res: Response) => {
       // Original existed
       if (original) {
         db.hdel('s', short);
+        db.del(short);
       }
     });
   }
@@ -236,6 +238,7 @@ app.post('/logout', (req: Request, res: Response) => {
 /**
  * Redirect to original url if short is a valid key.
  * Redirect to home page if not.
+ * Also logs the number of times the short was used.
  */
 app.all('/:short', (req: Request, res: Response) => {
   const { short } = req.params;
@@ -246,12 +249,25 @@ app.all('/:short', (req: Request, res: Response) => {
       res.render('index', {
         error: 'There was a DB error. Please contact rkhorana@alumni.cmu.edu',
       });
-    } else if (original) {
-      logger.info(`Redirected to ${original}`);
-      res.redirect(original);
-    } else {
+    } else if (!original) {
       logger.warn('No redirects found');
       res.redirect('/');
+    } else {
+      logger.info(`Redirected to ${original}`);
+      res.redirect(original);
+
+      // Increment page view
+      db.get(short, (err: Error | null) => {
+        if (err) {
+          logger.error('Redis error in /:short get', err);
+        } else {
+          db.incr(short, (err: Error | null) => {
+            if (err) {
+              logger.error('Redis error in /:short incr', err);
+            }
+          });
+        }
+      });
     }
   });
 });
