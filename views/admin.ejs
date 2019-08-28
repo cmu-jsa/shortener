@@ -17,7 +17,11 @@
         <% data.forEach(linkInfo => { %>
           <tr>
             <td><%= linkInfo.views %></td>
-            <td><%= linkInfo.short %></td>
+            <td>
+              <a href="/<%= linkInfo.short %>">
+                <%= linkInfo.short %>
+              </a>
+            </td>
             <td class="table-cell truncate"><%= linkInfo.original %></td>
             <td>
               <form action="/remove" method="post">
