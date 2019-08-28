@@ -11,6 +11,7 @@ import http from 'http';
 import dotenv from 'dotenv';
 import express, { Application, Request, Response } from 'express';
 import session from 'express-session';
+import connectRedis from 'connect-redis';
 import bodyParser from 'body-parser';
 import redis, { RedisClient } from 'redis';
 import validator from 'validator';
@@ -37,6 +38,7 @@ const adminPass: string = process.env.ADMIN_PASS || '';
  */
 const app: Application = express();
 const db: RedisClient = redis.createClient(redisURL);
+const RedisStore = connectRedis(session);
 
 /**
  * Fallback for database error
@@ -62,6 +64,9 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(session({
+  store: new RedisStore({
+    client: db,
+  }),
   secret: 'keyboard cat',
   resave: false,
   saveUninitialized: false,
