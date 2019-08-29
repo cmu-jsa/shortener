@@ -138,7 +138,7 @@ function validateInput(original: string, short: string): ResultObj {
  */
 
 /**
- * POST to home to register new original: short pair.
+ * POST to register new original: short pair.
  */
 app.get('/api/createShort', (req: Request, res: Response) => {
   // Check API Key
@@ -150,8 +150,8 @@ app.get('/api/createShort', (req: Request, res: Response) => {
 
   // API check passed
   } else {
-    const original = req.query.original || '';
-    const short = req.query.short || ShortDB.makeShort();
+    const original = req.query.o || '';
+    const short = req.query.s || ShortDB.makeShort();
     logger.info(`Validating ${short}: ${original}`);
 
     const result: ResultObj = validateInput(original, short);
