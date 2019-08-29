@@ -37,6 +37,7 @@ const port: string = process.env.PORT || '5000';
 const redisURL: string = process.env.REDIS_URL || '';
 const adminUser: string = process.env.ADMIN_USER || '';
 const adminPass: string = process.env.ADMIN_PASS || '';
+const apiKey: string = process.env.API_KEY || '';
 
 /**
  * App settings
@@ -89,6 +90,87 @@ app.set('view engine', 'ejs');
 app.set('views', './views');
 
 /**
+ * Helpers
+ */
+
+/**
+ * Validates the original and short pair.
+ */
+interface ResultObj {
+  success: boolean;
+  output: string;
+}
+
+function validateInput(original: string, short: string): ResultObj {
+  const result = {
+    success: true,
+    output: `jsa.life/${short}`,
+  };
+
+  // Validate original URL.
+  const urlOptions = {
+    protocols: ['http', 'https'],
+    require_protocol: true,
+  };
+
+  if (!validator.isURL(original, urlOptions)) {
+    result.success = false;
+    result.output = 'Invalid original URL';
+  }
+
+  // Validate short.
+  if (!validator.isAlphanumeric(short.replace(/[_!-]/g, 'a'))) {
+    result.success = false;
+    result.output = `Cannot shorten to ${short}`;
+  }
+
+  // Check if short already exists.
+  if (ShortDB.has(short)) {
+    result.success = false;
+    result.output = `${short} is already taken`;
+  }
+
+  return result;
+}
+
+/**
+ * API routes
+ */
+
+/**
+ * POST to register new original: short pair.
+ */
+app.get('/api/createShort', (req: Request, res: Response) => {
+  // Check API Key
+  if (req.query.apiKey !== apiKey) {
+    res.json({
+      success: false,
+      output: 'Invalid API Key',
+    })
+
+  // API check passed
+  } else {
+    const original = req.query.o || '';
+    const short = req.query.s || ShortDB.makeShort();
+    logger.info(`Validating ${short}: ${original}`);
+
+    const result: ResultObj = validateInput(original, short);
+    if (!result.success) {
+      logger.warn(result.output);
+    } else {
+      ShortDB.set(short, original);
+      logger.success('Succeeded in creating short');
+    }
+
+    res.json(result);
+  }
+});
+
+/**
+ * Browser routes
+ */
+
+/**
  * GET home
  */
 app.get('/', (req: Request, res: Response) => {
@@ -99,46 +181,27 @@ app.get('/', (req: Request, res: Response) => {
  * POST to home to register new original: short pair.
  */
 app.post('/', (req: Request, res: Response) => {
-  const { original } = req.body;
+  const original = req.body.original || '';
   const short = req.body.short || ShortDB.makeShort();
-  logger.info(`Checking ${short}: ${original}`);
+  logger.info(`Validating ${short}: ${original}`);
 
-  // Validate original URL.
-  const urlOptions = {
-    protocols: ['http', 'https'],
-    require_protocol: true,
-  };
+  // Validates input first
+  const result: ResultObj = validateInput(original, short);
+  if (!result.success) {
+    logger.warn(result.output);
+    res.render('index', {
+      error: result.output,
+    });
 
-  if (!validator.isURL(original, urlOptions)) {
-    logger.warn('Original URL was invalid');
-    return res.render('index', {
-      error: 'Invalid URL',
+  // All checks have passed
+  } else {
+    ShortDB.set(short, original);
+    logger.success('Succeeded in creating short');
+    res.render('index', {
+      original,
+      short,
     });
   }
-
-  // Validate short.
-  if (!validator.isAlphanumeric(short.replace(/[_!-]/g, ''))) {
-    logger.warn('Short was invalid');
-    return res.render('index', {
-      error: `Cannot shorten to ${short}`,
-    });
-  }
-
-  // Check if short already exists.
-  if (ShortDB.has(short)) {
-    logger.warn('Short already has a target');
-    return res.render('index', {
-      error: `${short} is already taken`,
-    });
-  }
-
-  // All checks have passed.
-  ShortDB.set(short, original);
-  logger.success('Succeeded in creating short');
-  return res.render('index', {
-    original,
-    short,
-  });
 });
 
 /**
