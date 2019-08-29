@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpileOnly src/*",
+    "dev": "ts-node-dev src/index.ts --respawn --transpileOnly src/*",
     "db": "redis-server",
     "build": "tsc",
     "lint": "eslint src/*"

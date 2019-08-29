@@ -10,13 +10,13 @@
     "@typescript-eslint/no-useless-constructor": "error"
   },
   "settings": {
-    "import/extensions": [".js",".ts"],
+    "import/extensions": [".js", ".ts", ".d.ts"],
     "import/parsers": {
-      "@typescript-eslint/parser": [".ts"]
+      "@typescript-eslint/parser": [".ts", ".d.ts"]
     },
     "import/resolver": {
       "node": {
-        "extensions": [".js",".ts"]
+        "extensions": [".js", ".ts", ".d.ts"]
       }
     }
   }
