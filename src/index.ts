@@ -215,8 +215,11 @@ app.get('/admin', (req: Request, res: Response) => {
   } else {
     ShortDB.getAll()
       .then((data: LinkData[]) => {
+
         // Sort based on number of views
-        data.sort((a: LinkData, b: LinkData) => ((a.views >= b.views) ? -1 : 1));
+        data.sort((a: LinkData, b: LinkData) => {
+          return parseInt(a.views, 10) >= parseInt(b.views, 10) ? -1 : 1;
+        });
         res.render('admin', {
           data,
         });
