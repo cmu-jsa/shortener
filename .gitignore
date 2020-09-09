@@ -65,3 +65,5 @@ dist/
 
 # Redis dump
 dump.rdb
+
+.vscode
