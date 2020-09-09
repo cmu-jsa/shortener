@@ -1,7 +1,11 @@
 html {
-  background: #222222;
-  color: #eeeeee;
+  background: #eeeeee;
+  color: #222222;
   font-family: 'Open Sans', sans-serif;
+}
+
+h1 {
+  color: #2e3192;
 }
 
 h4 {
@@ -13,7 +17,7 @@ p {
 }
 
 a {
-  color: #ffcdd1;
+  color: #f2001f;
   text-decoration: none;
 }
 
@@ -29,14 +33,18 @@ a {
 }
 
 .required {
-  color: #deacb0;
+  color: #ec8a90;
   font-size: 0.8em;
 }
 
 .shortened-modal {
-  background: #303030;
+  background: #dddddd;
   border-radius: 15px;
   padding: 2em;
+}
+
+.shortened-link {
+  color: #f2001f;
 }
 
 .original-url {
@@ -64,10 +72,8 @@ a {
 .footer-logo {
   position: fixed;
   width: 10vw;
-  height: 10vw;
   min-width: 90px;
-  min-height: 90px;
-  right: 15px;
+  right: 30px;
   bottom: 15px;
 }
 
@@ -86,7 +92,7 @@ a {
   padding: 5px 0;
   background: none;
   border: none;
-  color: #ffcdd1;
+  color: #f2001f;
   cursor: pointer;
   border-radius: 5px;
 }
@@ -106,20 +112,20 @@ a {
  */
 
 .btn-large {
-  background: linear-gradient(#202020, #181818);
-  border: 1px solid #484848;
-  color: #eeeeee;
+  background: linear-gradient(#2e3192, #1d2081);
+  border: 1px solid #2e3192;
+  color: #dddddd;
   box-shadow: none;
   border-radius: 8px;
 }
 
 .btn-large:hover {
-  background: linear-gradient(#303030, #282828);
+  background: linear-gradient(#4f53b4, #3f42a3);
   box-shadow: none;
 }
 
 .input-field input {
-  color: #eeeeee;
+  color: #222222;
 }
 
 /* label color */
@@ -129,26 +135,26 @@ a {
 
 /* label focus color */
 .input-field input[type=text]:focus + label {
-  color: #cccccc !important;
+  color: #888888 !important;
 }
 
 /* label underline focus color */
 .input-field input[type=text]:focus {
-  border-bottom: 1px solid #eeeeee !important;
+  border-bottom: 1px solid #2e3192 !important;
   box-shadow: 0 1px 0 0 #555555 !important;
 }
 
 /* label focus color */
 .input-field input[type=password]:focus + label {
-  color: #cccccc !important;
+  color: #888888 !important;
 }
 
 /* label underline focus color */
 .input-field input[type=password]:focus {
-  border-bottom: 1px solid #eeeeee !important;
+  border-bottom: 1px solid #2e3192 !important;
   box-shadow: 0 1px 0 0 #555555 !important;
 }
 
 .input-field .helper-text {
-  color: #eeeeee;
+  color: #555555;
 }
