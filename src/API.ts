@@ -1,9 +1,21 @@
+/**
+ * Node modules
+ */
 import express, { Request, Response, Router } from 'express';
 import basicAuth from 'express-basic-auth';
 import bodyParser from 'body-parser';
+import cors from 'cors';
+
+/**
+ * Custom
+ */
 import Shortener from './Shortener';
 import Authenticator from './Authenticator';
 import logger from './logger';
+
+/**
+ * Types
+ */
 import { ResultObj } from './types';
 
 export default class API {
@@ -25,6 +37,7 @@ export default class API {
   }
 
   private setupRouter() {
+    this.router.use(cors());
     this.router.use(bodyParser.json());
     this.router.use(basicAuth({
       authorizer: this.asyncAuthorizer,

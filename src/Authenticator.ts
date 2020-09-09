@@ -1,5 +1,12 @@
-import { RedisClient } from 'redis';
+/**
+ * Node built-in
+ */
 import { promisify } from 'util';
+
+/**
+ * Node modules
+ */
+import { RedisClient } from 'redis';
 import basicAuth from 'express-basic-auth';
 
 export default class Authenticator {
