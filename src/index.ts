@@ -14,7 +14,6 @@ import session from 'express-session';
 import connectRedis from 'connect-redis';
 import bodyParser from 'body-parser';
 import redis, { RedisClient } from 'redis';
-import validator from 'validator';
 import isImage from 'is-image';
 
 /**
@@ -22,11 +21,13 @@ import isImage from 'is-image';
  */
 import logger from './logger';
 import Shortener from './Shortener';
+import API from './API';
 
 /**
  * Types
  */
-import { LinkData } from './types';
+import { LinkData, ResultObj } from './types';
+import Authenticator from './Authenticator';
 
 /**
  * Environment Variables
@@ -35,16 +36,15 @@ dotenv.config();
 const url: string = process.env.ROOT_URL || 'http://localhost:5000';
 const port: string = process.env.PORT || '5000';
 const redisURL: string = process.env.REDIS_URL || '';
-const adminUser: string = process.env.ADMIN_USER || '';
-const adminPass: string = process.env.ADMIN_PASS || '';
-const apiKey: string = process.env.API_KEY || '';
 
 /**
  * App settings
  */
 const app: Application = express();
 const db: RedisClient = redis.createClient(redisURL);
-const ShortDB = new Shortener(db);
+const shortener = new Shortener(db);
+const authenticator = new Authenticator(db);
+const api = new API(shortener, authenticator).getRouter();
 const RedisStore = connectRedis(session);
 
 /**
@@ -67,6 +67,7 @@ setInterval(() => {
 /**
  * Middleware
  */
+app.use('/api', api);
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../favicon')));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -90,87 +91,6 @@ app.set('view engine', 'ejs');
 app.set('views', './views');
 
 /**
- * Helpers
- */
-
-/**
- * Validates the original and short pair.
- */
-interface ResultObj {
-  success: boolean;
-  output: string;
-}
-
-function validateInput(original: string, short: string): ResultObj {
-  const result = {
-    success: true,
-    output: `jsa.life/${short}`,
-  };
-
-  // Validate original URL.
-  const urlOptions = {
-    protocols: ['http', 'https'],
-    require_protocol: true,
-  };
-
-  if (!validator.isURL(original, urlOptions)) {
-    result.success = false;
-    result.output = 'Invalid original URL';
-  }
-
-  // Validate short.
-  if (!validator.isAlphanumeric(short.replace(/[_!-]/g, 'a'))) {
-    result.success = false;
-    result.output = `Cannot shorten to ${short}`;
-  }
-
-  // Check if short already exists.
-  if (ShortDB.has(short)) {
-    result.success = false;
-    result.output = `${short} is already taken`;
-  }
-
-  return result;
-}
-
-/**
- * API routes
- */
-
-/**
- * POST to register new original: short pair.
- */
-app.get('/api/createShort', (req: Request, res: Response) => {
-  // Check API Key
-  if (req.query.apiKey !== apiKey) {
-    res.json({
-      success: false,
-      output: 'Invalid API Key',
-    })
-
-  // API check passed
-  } else {
-    const original = req.query.o || '';
-    const short = req.query.s || ShortDB.makeShort();
-    logger.info(`Validating ${short}: ${original}`);
-
-    const result: ResultObj = validateInput(original, short);
-    if (!result.success) {
-      logger.warn(result.output);
-    } else {
-      ShortDB.set(short, original);
-      logger.success('Succeeded in creating short');
-    }
-
-    res.json(result);
-  }
-});
-
-/**
- * Browser routes
- */
-
-/**
  * GET home
  */
 app.get('/', (req: Request, res: Response) => {
@@ -182,11 +102,11 @@ app.get('/', (req: Request, res: Response) => {
  */
 app.post('/', (req: Request, res: Response) => {
   const original = req.body.original || '';
-  const short = req.body.short || ShortDB.makeShort();
+  const short = req.body.short || shortener.makeShort();
   logger.info(`Validating ${short}: ${original}`);
 
   // Validates input first
-  const result: ResultObj = validateInput(original, short);
+  const result: ResultObj = shortener.validateInput(original, short);
   if (!result.success) {
     logger.warn(result.output);
     res.render('index', {
@@ -195,7 +115,7 @@ app.post('/', (req: Request, res: Response) => {
 
   // All checks have passed
   } else {
-    ShortDB.set(short, original);
+    shortener.set(short, original);
     logger.success('Succeeded in creating short');
     res.render('index', {
       original,
@@ -210,13 +130,13 @@ app.post('/', (req: Request, res: Response) => {
  */
 app.get('/admin', (req: Request, res: Response) => {
   // @ts-ignore
-  if (req.session.user !== adminUser) {
+  if (req.session.user !== 'admin') {
     res.render('login');
   } else {
-    ShortDB.getAll()
+    shortener.getAll()
       .then((data: LinkData[]) => {
-
         // Sort based on number of views
+        // eslint-disable-next-line arrow-body-style
         data.sort((a: LinkData, b: LinkData) => {
           return parseInt(a.views, 10) >= parseInt(b.views, 10) ? -1 : 1;
         });
@@ -239,13 +159,20 @@ app.post('/admin', (req: Request, res: Response) => {
     username,
     password,
   } = req.body;
-  if (username === adminUser && password === adminPass) {
-    // @ts-ignore
-    req.session.user = username;
-    res.redirect('/admin');
-  } else {
-    res.render('login');
-  }
+  authenticator.authenticate(username, password, true)
+    .then((authenticated) => {
+      if (authenticated) {
+        // @ts-ignore
+        req.session.user = 'admin';
+        res.redirect('/admin');
+      } else {
+        res.render('login');
+      }
+    })
+    .catch((e) => {
+      logger.error('Authentication failed unexpectedly', e);
+      res.render('login');
+    });
 });
 
 /**
@@ -254,9 +181,9 @@ app.post('/admin', (req: Request, res: Response) => {
 app.post('/remove', (req: Request, res: Response) => {
   // Check if the user is logged in properly
   // @ts-ignore
-  if (req.session.user === adminUser) {
+  if (req.session.user === 'admin') {
     const { short } = req.body;
-    ShortDB.del(short);
+    shortener.del(short);
   }
 
   res.redirect('/admin');
@@ -287,15 +214,15 @@ app.all('/:short', (req: Request, res: Response) => {
   logger.info(`Trying to redirect from ${short}`);
 
   // Invalid short
-  if (!ShortDB.has(short)) {
+  if (!shortener.has(short)) {
     logger.warn('No redirects found');
     res.redirect('/');
   } else {
-    ShortDB.get(short)
+    shortener.get(short)
       .then((original: string) => {
         logger.info(`Redirected to ${original}`);
         res.redirect(original);
-        ShortDB.incr(short);
+        shortener.incr(short);
       })
       .catch((err: Error) => {
         logger.error('Redis error in /:short', err);

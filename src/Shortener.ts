@@ -8,6 +8,7 @@ import { promisify } from 'util';
  */
 import { RedisClient } from 'redis';
 import randomstring from 'randomstring';
+import validator from 'validator';
 
 /**
  * Custom modules
@@ -17,7 +18,7 @@ import logger from './logger';
 /**
  * Types
  */
-import { RedisDataObject, LinkData } from './types';
+import { RedisDataObject, LinkData, ResultObj } from './types';
 
 /**
  * A RedisClient db interface for shortener specific operations.
@@ -53,9 +54,11 @@ export default class Shortener {
    */
   private async populateGeneratedShorts() {
     const data = await this.hgetall('s');
-    Object.keys(data).forEach((short: string) => {
-      this.generatedShorts.add(short);
-    });
+    if (data != null) {
+      Object.keys(data).forEach((short: string) => {
+        this.generatedShorts.add(short);
+      });
+    }
   }
 
   /**
@@ -130,5 +133,48 @@ export default class Shortener {
    */
   incr(short: string): void {
     this.db.hincrby('v', short, 1);
+  }
+
+  /**
+   * Validates the original / short pair for registration.
+   * Returns a ResultObj where:
+   *   success: (boolean) Whether or not the pair was valid
+   *   output: The shortened link on success, the error message otherwise
+   */
+  validateInput(original: string, short: string): ResultObj {
+    const result = {
+      success: true,
+      output: `jsa.life/${short}`,
+    };
+
+    // Validate original URL.
+    if (original.includes('jsa.life')) {
+      result.success = false;
+      result.output = 'Cannot shorten jsa.life URLs';
+    }
+
+    const urlOptions = {
+      protocols: ['http', 'https'],
+      require_protocol: true,
+    };
+
+    if (!validator.isURL(original, urlOptions)) {
+      result.success = false;
+      result.output = 'Invalid original URL';
+    }
+
+    // Validate short.
+    if (!validator.isAlphanumeric(short.replace(/[_!-]/g, 'a'))) {
+      result.success = false;
+      result.output = `Cannot shorten to ${short}`;
+    }
+
+    // Check if short already exists.
+    if (this.has(short)) {
+      result.success = false;
+      result.output = `${short} is already taken`;
+    }
+
+    return result;
   }
 }

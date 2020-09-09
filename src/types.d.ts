@@ -5,3 +5,8 @@ export interface LinkData {
   original: string;
   views: string;
 }
+
+export interface ResultObj {
+  success: boolean;
+  output: string;
+}
