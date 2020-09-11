@@ -80,7 +80,7 @@ export default class API {
    * Custom middleware
    */
   private static requireHttps(req: Request, res: Response, next: NextFunction) {
-    if (req.secure) {
+    if (!req.secure) {
       res.status(405).send('405 - https required');
     } else {
       next();
