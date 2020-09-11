@@ -1,7 +1,12 @@
 /**
  * Node modules
  */
-import express, { Request, Response, Router } from 'express';
+import express, {
+  Request,
+  Response,
+  Router,
+  NextFunction,
+} from 'express';
 import basicAuth from 'express-basic-auth';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -42,12 +47,13 @@ export default class API {
     this.router.use(basicAuth({
       authorizer: this.asyncAuthorizer,
       authorizeAsync: true,
+      unauthorizedResponse: '401 - Unauthorized',
     }));
 
     /**
      * POST to register new original: short pair.
      */
-    this.router.post('/shorten', (req: Request, res: Response) => {
+    this.router.post('/shorten', API.requireHttps, (req: Request, res: Response) => {
       const original = req.body.original || '';
       const short = req.body.short || this.shortener.makeShort();
       logger.info(`Validating ${short}: ${original}`);
@@ -68,6 +74,17 @@ export default class API {
     this.authenticator.authenticate(username, password)
       .then(authorized => cb(null, authorized))
       .catch(() => cb(null, false));
+  }
+
+  /**
+   * Custom middleware
+   */
+  private static requireHttps(req: Request, res: Response, next: NextFunction) {
+    if (req.protocol !== 'https') {
+      res.status(405).send('405 - https required');
+    } else {
+      next();
+    }
   }
 
   getRouter() {

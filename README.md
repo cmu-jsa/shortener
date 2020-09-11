@@ -10,7 +10,7 @@ Please ask the code owner if you think you may need one.
 
 ### Header
 
-- (Required) The API uses [basic authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication)
+- (Required) `Authorization: Basic ${BASE64_ENCODED_STRING}` - The API uses [basic authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication)
 - (Required) `Content-Type: application/json`
 
 ### Body
@@ -31,7 +31,7 @@ All authenticated requests will be responded by a 200, with a response body:
 
 Sample request:
 ```
-curl --x POST 'http://jsa.life/api/shorten' --user '${YOUR_USER_NAME}' -H 'Content-Type:application/json' -d '{"original":"https://cmujsa.com","short":"home"}'
+curl -X POST 'http://jsa.life/api/shorten' --user '${YOUR_USER_NAME}' -H 'Content-Type:application/json' -d '{"original":"https://cmujsa.com","short":"home"}'
 ```
 
 Sample response:
