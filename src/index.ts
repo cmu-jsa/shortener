@@ -9,7 +9,12 @@ import http from 'http';
  * Node modules
  */
 import dotenv from 'dotenv';
-import express, { Application, Request, Response } from 'express';
+import express, {
+  Application,
+  Request,
+  Response,
+  NextFunction,
+} from 'express';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import bodyParser from 'body-parser';
@@ -85,6 +90,17 @@ app.use(session({
 }));
 
 /**
+ * Custom middleware
+ */
+function requireHttps(req: Request, res: Response, next: NextFunction) {
+  if (req.protocol !== 'https') {
+    res.status(405).send('405 - https required');
+  } else {
+    next();
+  }
+}
+
+/**
  * Views
  */
 app.set('view engine', 'ejs');
@@ -154,7 +170,7 @@ app.get('/admin', (req: Request, res: Response) => {
 /**
  * POST admin to check if login credentials match.
  */
-app.post('/admin', (req: Request, res: Response) => {
+app.post('/admin', requireHttps, (req: Request, res: Response) => {
   const {
     username,
     password,
@@ -178,7 +194,7 @@ app.post('/admin', (req: Request, res: Response) => {
 /**
  * POST to remove a short: original pair from db.
  */
-app.post('/remove', (req: Request, res: Response) => {
+app.post('/remove', requireHttps, (req: Request, res: Response) => {
   // Check if the user is logged in properly
   // @ts-ignore
   if (req.session.user === 'admin') {
@@ -192,7 +208,7 @@ app.post('/remove', (req: Request, res: Response) => {
 /**
  * POST to log out.
  */
-app.post('/logout', (req: Request, res: Response) => {
+app.post('/logout', requireHttps, (req: Request, res: Response) => {
   if (req.session) {
     req.session.destroy((err: Error | null) => {
       if (err) {
