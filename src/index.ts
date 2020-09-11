@@ -94,7 +94,7 @@ app.use(session({
  */
 function requireHttps(req: Request, res: Response, next: NextFunction) {
   if (req.protocol !== 'https') {
-    res.status(405).send('405 - https required');
+    res.status(405).send(`405 - https required. base url: ${req.protocol}://${req.get('host')}`);
   } else {
     next();
   }
