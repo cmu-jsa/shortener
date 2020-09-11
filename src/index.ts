@@ -51,6 +51,7 @@ const shortener = new Shortener(db);
 const authenticator = new Authenticator(db);
 const api = new API(shortener, authenticator).getRouter();
 const RedisStore = connectRedis(session);
+app.enable('trust proxy');
 
 /**
  * Fallback for database error
@@ -93,8 +94,8 @@ app.use(session({
  * Custom middleware
  */
 function requireHttps(req: Request, res: Response, next: NextFunction) {
-  if (req.protocol !== 'https') {
-    res.status(405).send(`405 - https required. base url: ${req.protocol}://${req.get('host')}`);
+  if (req.secure) {
+    res.status(405).send('405 - https required');
   } else {
     next();
   }
