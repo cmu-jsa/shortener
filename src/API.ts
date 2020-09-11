@@ -47,6 +47,7 @@ export default class API {
     this.router.use(basicAuth({
       authorizer: this.asyncAuthorizer,
       authorizeAsync: true,
+      unauthorizedResponse: '401 - Unauthorized',
     }));
 
     /**
