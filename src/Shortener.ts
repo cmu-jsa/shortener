@@ -148,9 +148,29 @@ export default class Shortener {
     };
 
     // Validate original URL.
-    if (original.includes('jsa.life')) {
+    if (
+      original.includes('://jsa.life')
+      || original.includes('://jsa-life.herokuapp.com')
+    ) {
       result.success = false;
-      result.output = 'Cannot shorten jsa.life URLs';
+      result.output = 'Cannot shorten URLs linked to jsa.life/*';
+    }
+
+    /*
+     * deny-list
+     *
+     * todo:
+     *   - Use db storage for deny-list
+     *   - Make it configurable on the admin page.
+     */
+    const denyList = [
+      'datecontacts-store1',
+      'dirtyvalentine',
+      'mosthoties',
+    ];
+    if (denyList.some(keyword => original.includes(keyword))) {
+      result.success = false;
+      result.output = 'The original URL contains a blocked string';
     }
 
     const urlOptions = {
