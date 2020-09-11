@@ -94,7 +94,7 @@ app.use(session({
  * Custom middleware
  */
 function requireHttps(req: Request, res: Response, next: NextFunction) {
-  if (req.secure) {
+  if (!req.secure) {
     res.status(405).send('405 - https required');
   } else {
     next();
