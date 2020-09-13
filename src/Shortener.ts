@@ -147,13 +147,24 @@ export default class Shortener {
       output: `jsa.life/${short}`,
     };
 
-    // Validate original URL.
     if (
       original.includes('://jsa.life')
       || original.includes('://jsa-life.herokuapp.com')
     ) {
       result.success = false;
       result.output = 'Cannot shorten URLs linked to jsa.life/*';
+      return result;
+    }
+
+    const urlOptions = {
+      protocols: ['http', 'https'],
+      require_protocol: true,
+    };
+
+    if (!validator.isURL(original, urlOptions)) {
+      result.success = false;
+      result.output = 'Invalid original URL';
+      return result;
     }
 
     /*
@@ -171,28 +182,19 @@ export default class Shortener {
     if (denyList.some(keyword => original.includes(keyword))) {
       result.success = false;
       result.output = 'The original URL contains a blocked string';
+      return result;
     }
 
-    const urlOptions = {
-      protocols: ['http', 'https'],
-      require_protocol: true,
-    };
-
-    if (!validator.isURL(original, urlOptions)) {
-      result.success = false;
-      result.output = 'Invalid original URL';
-    }
-
-    // Validate short.
     if (!validator.isAlphanumeric(short.replace(/[_!-]/g, 'a'))) {
       result.success = false;
       result.output = `Cannot shorten to ${short}`;
+      return result;
     }
 
-    // Check if short already exists.
     if (this.has(short)) {
       result.success = false;
       result.output = `${short} is already taken`;
+      return result;
     }
 
     return result;
