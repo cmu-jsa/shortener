@@ -98,12 +98,12 @@ a {
 }
 
 .btn-remove:hover {
-  background: #323232;
+  background: #cccccc;
   border: none;
 }
 
 .btn-remove:focus {
-  background: #323232;
+  background: #cccccc;
   border: none;
 }
 
