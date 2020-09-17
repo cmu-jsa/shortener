@@ -147,7 +147,8 @@ app.post('/', (req: Request, res: Response) => {
  */
 app.get('/admin', (req: Request, res: Response) => {
   // @ts-ignore
-  if (req.session.user !== 'admin') {
+  const { user } = req.session;
+  if (user !== 'admin' && user !== 'user') {
     res.render('login');
   } else {
     shortener.getAll()
@@ -159,6 +160,7 @@ app.get('/admin', (req: Request, res: Response) => {
         });
         res.render('admin', {
           data,
+          isAdmin: user === 'admin',
         });
       })
       .catch((err: Error) => {
@@ -177,13 +179,26 @@ app.post('/admin', requireHttps, (req: Request, res: Response) => {
     password,
   } = req.body;
   authenticator.authenticate(username, password, true)
-    .then((authenticated) => {
-      if (authenticated) {
+    .then((authenticatedAdmin) => {
+      if (authenticatedAdmin) {
         // @ts-ignore
         req.session.user = 'admin';
         res.redirect('/admin');
       } else {
-        res.render('login');
+        authenticator.authenticate(username, password, false)
+          .then((authenticatedUser) => {
+            if (authenticatedUser) {
+              // @ts-ignore
+              req.session.user = 'user';
+              res.redirect('/admin');
+            } else {
+              res.render('login');
+            }
+          })
+          .catch((e) => {
+            logger.error('Authentication failed unexpectedly', e);
+            res.render('login');
+          });
       }
     })
     .catch((e) => {
@@ -196,7 +211,7 @@ app.post('/admin', requireHttps, (req: Request, res: Response) => {
  * POST to remove a short: original pair from db.
  */
 app.post('/remove', requireHttps, (req: Request, res: Response) => {
-  // Check if the user is logged in properly
+  // Check if the user is logged in as admin
   // @ts-ignore
   if (req.session.user === 'admin') {
     const { short } = req.body;

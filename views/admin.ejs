@@ -32,12 +32,14 @@
             </td>
             <td class="table-cell truncate"><%= linkInfo.original %></td>
             <td>
-              <form action="/remove" method="post">
-                <input type="hidden" name="short" value=<%= linkInfo.short %>>
-                <button class="btn-remove" type="submit" name="remove">
-                  Remove
-                </button>
-              </form>
+              <%if (isAdmin) { %>
+                <form action="/remove" method="post">
+                  <input type="hidden" name="short" value=<%= linkInfo.short %>>
+                  <button class="btn-remove" type="submit" name="remove">
+                    Remove
+                  </button>
+                </form>
+                <% } %>
             </td>
           </tr>
         <% }); %>
