@@ -21,6 +21,17 @@ a {
   text-decoration: none;
 }
 
+.insecure-popup {
+  color: #e9e9e9;
+  background-color: #f2001f;
+  padding: 2vh 0;
+}
+
+.insecure-popup a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
 .notfound-image {
   max-width: 90vw;
   max-height: 60vh;
