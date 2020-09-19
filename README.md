@@ -29,7 +29,7 @@ Expects a JSON with the following fields:
 All authenticated requests will be responded by a 200, with a response body:
 
 - success: Boolean value of whether the URL was successfully shortened or not
-- output: The shortened URL iff success == true
+- output: The shortened URL iff success == true, error message otherwise
 
 ## Example
 
