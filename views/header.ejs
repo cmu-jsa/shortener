@@ -27,4 +27,11 @@
   <title>JSA URL Shortener</title>
 </head>
 <body>
+  <%if (!secure) { %>
+    <div class="center-align insecure-popup">
+      Your connection to this site is not secure (http). Consider accessing
+      <a href="https://jsa-life.herokuapp.com">here</a>
+      instead.
+    </div>
+  <% } %>
   <div class="container center-align">

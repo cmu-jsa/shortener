@@ -111,7 +111,7 @@ app.set('views', './views');
  * GET home
  */
 app.get('/', (req: Request, res: Response) => {
-  res.render('index');
+  res.render('index', { secure: req.secure });
 });
 
 /**
@@ -128,6 +128,7 @@ app.post('/', (req: Request, res: Response) => {
     logger.warn(result.output);
     res.render('index', {
       error: result.output,
+      secure: req.secure,
     });
 
   // All checks have passed
@@ -137,6 +138,7 @@ app.post('/', (req: Request, res: Response) => {
     res.render('index', {
       original,
       short,
+      secure: req.secure,
     });
   }
 });
@@ -149,7 +151,7 @@ app.get('/admin', (req: Request, res: Response) => {
   // @ts-ignore
   const { user } = req.session;
   if (user !== 'admin' && user !== 'user') {
-    res.render('login');
+    res.render('login', { secure: req.secure });
   } else {
     shortener.getAll()
       .then((data: LinkData[]) => {
@@ -161,11 +163,12 @@ app.get('/admin', (req: Request, res: Response) => {
         res.render('admin', {
           data,
           isAdmin: user === 'admin',
+          secure: req.secure,
         });
       })
       .catch((err: Error) => {
         logger.error('Redis error in /admin', err);
-        res.render('admin');
+        res.render('admin', { secure: req.secure });
       });
   }
 });
@@ -260,6 +263,7 @@ app.all('/:short', (req: Request, res: Response) => {
         logger.error('Redis error in /:short', err);
         res.render('index', {
           error: 'There was a DB error. Please contact rkhorana@alumni.cmu.edu',
+          secure: req.secure,
         });
       });
   }
@@ -272,7 +276,7 @@ app.all('*', (req: Request, res: Response) => {
   const dirPath = path.join(__dirname, '../public/assets/404');
   fs.readdir(dirPath, (err, files) => {
     if (err) {
-      return res.render('404');
+      return res.render('404', { secure: req.secure });
     }
 
     const images: string[] = files.filter(file => isImage(file));
@@ -280,6 +284,7 @@ app.all('*', (req: Request, res: Response) => {
     const selectedImg: string = images[randomIndex];
     return res.render('404', {
       img: `/assets/404/${selectedImg}`,
+      secure: req.secure,
     });
   });
 });

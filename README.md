@@ -1,12 +1,16 @@
 # shortener
 A simple url shortener for JSA members to use ♥️
 
-# Use the API
+# Using the API
 
 In order to use the shortener API, you must acquire a username + password.
 Please ask the code owner if you think you may need one.
 
 ## Request
+
+### Base URL
+
+You must use [https://jsa-life.herokuapp.com](https://jsa-life.herokuapp.com) as the base URL, since the APIs are only available through https.
 
 ### Header
 
@@ -25,13 +29,13 @@ Expects a JSON with the following fields:
 All authenticated requests will be responded by a 200, with a response body:
 
 - success: Boolean value of whether the URL was successfully shortened or not
-- output: The shortened URL iff success == true
+- output: The shortened URL iff success == true, error message otherwise
 
 ## Example
 
 Sample request:
 ```
-curl -X POST 'http://jsa.life/api/shorten' --user '${YOUR_USER_NAME}' -H 'Content-Type:application/json' -d '{"original":"https://cmujsa.com","short":"home"}'
+curl -X POST 'https://jsa-life.herokuapp.com/api/shorten' --user '${YOUR_USER_NAME}' -H 'Content-Type:application/json' -d '{"original":"https://cmujsa.com","short":"home"}'
 ```
 
 Sample response:

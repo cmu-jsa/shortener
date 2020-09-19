@@ -1,4 +1,4 @@
-<%- include('header'); -%>
+<%- include('header', { secure: secure }); -%>
 
 <h1>jsa.life/<a href="/admin">*</a></h1>
 
@@ -16,7 +16,7 @@
       <%= original %>
     </p>
     <p>was shortened to:</p>
-    <button class="link-button" onclick="copyLink('jsa.life/<%= short %>')">
+    <button class="link-button" id="copyButton">
       <h4 class="shortened-link">jsa.life/<%= short %></h4>
     </button>
     <p>Click on link to copy</p>

@@ -1,4 +1,4 @@
-<%- include('header'); -%>
+<%- include('header', { secure: secure }); -%>
 
 <h1>Admin/<a href="/">*</a></h1>
 
@@ -39,7 +39,7 @@
                     Remove
                   </button>
                 </form>
-                <% } %>
+              <% } %>
             </td>
           </tr>
         <% }); %>
