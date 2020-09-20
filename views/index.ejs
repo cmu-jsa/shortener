@@ -16,7 +16,7 @@
       <%= original %>
     </p>
     <p>was shortened to:</p>
-    <button class="link-button" id="copyButton">
+    <button class="link-button" onclick="navigator.clipboard.writeText('jsa.life/<%= short %>');M.toast({ html: 'Link copied!' });">
       <h4 class="shortened-link">jsa.life/<%= short %></h4>
     </button>
     <p>Click on link to copy</p>
