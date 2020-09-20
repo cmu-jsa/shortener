@@ -195,18 +195,18 @@ app.post('/admin', requireHttps, (req: Request, res: Response) => {
               req.session.user = 'user';
               res.redirect('/admin');
             } else {
-              res.render('login');
+              res.render('login', { secure: req.secure });
             }
           })
           .catch((e) => {
             logger.error('Authentication failed unexpectedly', e);
-            res.render('login');
+            res.render('login', { secure: req.secure });
           });
       }
     })
     .catch((e) => {
       logger.error('Authentication failed unexpectedly', e);
-      res.render('login');
+      res.render('login', { secure: req.secure });
     });
 });
 

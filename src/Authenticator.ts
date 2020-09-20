@@ -7,7 +7,7 @@ import { promisify } from 'util';
  * Node modules
  */
 import { RedisClient } from 'redis';
-import basicAuth from 'express-basic-auth';
+import bcrypt from 'bcrypt';
 
 export default class Authenticator {
   // The redis database client to work off.
@@ -28,6 +28,6 @@ export default class Authenticator {
       return false;
     }
 
-    return basicAuth.safeCompare(password, realPassword);
+    return bcrypt.compare(password, realPassword);
   }
 }
