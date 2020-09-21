@@ -1,4 +1,9 @@
 /**
+ * Copyright 2019-2020 Japanese Student Association at Carnegie Mellon University.
+ * All rights reserved. MIT license.
+ */
+
+/**
  * Node built-in
  */
 import { promisify } from 'util';
@@ -90,9 +95,10 @@ export default class Shortener {
   /**
    * Sets the short: original pair in the db.
    */
-  set(short: string, original: string): void {
+  set(short: string, original: string, user = 'website'): void {
     this.db.hset('s', short, original);
     this.db.hset('v', short, '0');
+    this.db.hset('u', short, user);
     this.generatedShorts.add(short);
   }
 
@@ -103,6 +109,7 @@ export default class Shortener {
     if (this.has(short)) {
       this.db.hdel('s', short);
       this.db.hdel('v', short);
+      this.db.hdel('u', short);
       this.generatedShorts.delete(short);
     }
   }
@@ -121,10 +128,12 @@ export default class Shortener {
   async getAll(): Promise<LinkData[]> {
     const originals: RedisDataObject = await this.hgetall('s');
     const views: RedisDataObject = await this.hgetall('v');
+    const users: RedisDataObject = await this.hgetall('u');
     return Object.keys(originals).map((short: string) => ({
       short,
       original: originals[short],
       views: views[short],
+      user: users[short],
     }));
   }
 

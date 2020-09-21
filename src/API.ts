@@ -1,4 +1,9 @@
 /**
+ * Copyright 2019-2020 Japanese Student Association at Carnegie Mellon University.
+ * All rights reserved. MIT license.
+ */
+
+/**
  * Node modules
  */
 import express, {
@@ -56,13 +61,15 @@ export default class API {
     this.router.post('/shorten', API.requireHttps, (req: Request, res: Response) => {
       const original = req.body.original || '';
       const short = req.body.short || this.shortener.makeShort();
-      logger.info(`Validating ${short}: ${original}`);
+      // @ts-ignore
+      logger.info(`Validating ${short}: ${original} by ${req.auth.user}`);
 
       const result: ResultObj = this.shortener.validateInput(original, short);
       if (!result.success) {
         logger.warn(result.output);
       } else {
-        this.shortener.set(short, original);
+        // @ts-ignore
+        this.shortener.set(short, original, req.auth.user);
         logger.success('Succeeded in creating short');
       }
 
