@@ -1,3 +1,8 @@
+/**
+ * Copyright 2019-2020 Japanese Student Association at Carnegie Mellon University.
+ * All rights reserved. MIT license.
+ */
+
 import chalk from 'chalk';
 
 function log(msg: string) {
