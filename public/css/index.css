@@ -1,5 +1,6 @@
 /**
- * Copyright 2019-2020 Japanese Student Association at Carnegie Mellon University.
+ * Copyright 2019 - 2020
+ * Japanese Student Association at Carnegie Mellon University.
  * All rights reserved. MIT license.
  */
 
@@ -138,6 +139,11 @@ a {
 .btn-large:hover {
   background: linear-gradient(#4f53b4, #3f42a3);
   box-shadow: none;
+}
+
+.disabled {
+  background: #cccccc;
+  border: 1px solid #bbbbbb;
 }
 
 .input-field input {
