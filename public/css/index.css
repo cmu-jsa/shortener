@@ -140,6 +140,11 @@ a {
   box-shadow: none;
 }
 
+.disabled {
+  background: #cccccc;
+  border: 1px solid #bbbbbb;
+}
+
 .input-field input {
   color: #222222;
 }
