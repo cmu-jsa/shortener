@@ -14,10 +14,10 @@
       <!-- Only appears on mobile -->
       <a href="#" data-target="side-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
       <ul class="right hide-on-med-and-down">
-        <li><a href="#users">Users</a></li>
-        <li><a href="#denyList">DenyList</a></li>
-        <li><a href="#shorts">Shorts</a></li>
         <li><a href="#logout">Logout</a></li>
+        <li><a href="#shorts">Shorts</a></li>
+        <li><a href="#denyList">DenyList</a></li>
+        <li><a href="#users">Users</a></li>
       </ul>
     </div>
   </nav>
@@ -25,15 +25,15 @@
 
 <!-- Only appears on mobile -->
 <ul class="sidenav" id="side-nav">
-  <li><a href="#users">Users</a></li>
-  <li><a href="#denyList">DenyList</a></li>
-  <li><a href="#shorts">Shorts</a></li>
   <li><a href="#logout">Logout</a></li>
+  <li><a href="#shorts">Shorts</a></li>
+  <li><a href="#denyList">DenyList</a></li>
+  <li><a href="#users">Users</a></li>
 </ul>
 
 <div class="container center-align">
-  <h1 id="logout">Admin/<a href="/">*</a></h1>
   <div class="row">
+    <h1 id="logout">Admin/<a href="/">*</a></h1>
     <form action="/logout" method="post">
       <div class="row">
         <button class="btn-large waves-effect waves-light" type="submit" name="action">
@@ -56,7 +56,7 @@
           </tr>
         </thead>
         <tbody>
-          <% data.forEach(linkInfo => { %>
+          <% shorts.forEach(linkInfo => { %>
             <tr>
               <td><%= linkInfo.views %></td>
               <td>
@@ -67,8 +67,8 @@
               <td class="table-cell truncate"><%= linkInfo.original %></td>
               <td><%= linkInfo.user %></td>
               <td>
-                <%if (isAdmin) { %>
-                  <form action="/remove" method="post">
+                <% if (isAdmin) { %>
+                  <form action="/short/remove" method="post">
                     <input type="hidden" name="short" value=<%= linkInfo.short %>>
                     <button class="btn-remove" type="submit" name="remove">
                       Remove
@@ -82,6 +82,53 @@
       </table>
     </div>
   </div>
+  <% if (isAdmin) { %>
+    <div class="row">
+      <h1 id="denyList">Deny List</h1>
+      <div class="col s10 offset-s1">
+        <form action="/denyList/add" method="post">
+          <div class="row left-align">
+            <div class="input-field col s10 offset-s1">
+              <input id="keyword" name="keyword" type="text">
+              <label for="keyword">Keyword</label>
+            </div>
+          </div>
+          <div class="row">
+            <button
+              class="btn-large waves-effect waves-light"
+              type="submit"
+              name="action"
+            >
+              Add
+            </button>
+          </div>
+        </form>
+        <table class="table">
+          <thead>
+            <tr>
+              <th width="80%">Keyword</th>
+              <th width="20%"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% denyList.forEach(keyword => { %>
+              <tr>
+                <td><%= keyword%></td>
+                <td>
+                  <form action="/denyList/remove" method="post">
+                    <input type="hidden" name="keyword" value=<%= keyword %>>
+                    <button class="btn-remove" type="submit" name="remove">
+                      Remove
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
 </div>
 
 <%- include('footer'); -%>

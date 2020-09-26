@@ -73,7 +73,7 @@ export default class DenyList {
   }
 
   async rem(str: string) {
-    await this.srem(str);
+    await this.srem('denyList', str);
     this.denyList.delete(str);
   }
 }
