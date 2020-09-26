@@ -1,23 +1,26 @@
 <%- include('header', { secure: secure }); -%>
 
-<br class="hide-on-small-only">
-<br>
+<div class="container center-align">
+  <br class="hide-on-small-only">
+  <br>
 
-<% if (typeof img === 'undefined') { %>
-  <h1>404</h1>
-<% } else { %>
-  <img alt="404" src="<%= img %>" class="notfound-image">
-<% } %>
+  <% if (typeof img === 'undefined') { %>
+    <h1>404</h1>
+  <% } else { %>
+    <img alt="404" src="<%= img %>" class="notfound-image">
+  <% } %>
 
-<br>
-<br>
-<p>
-  <a href="/">Back to home</a>
-</p>
-<br>
-<p>
-  Weird?
-  <a href="mailto:rkhorana@alumni.cmu.edu" target="_blank">Contact here</a>
-</p>
+  <br>
+  <br>
+  <p>
+    <a href="/">Back to home</a>
+  </p>
+  <br>
+  <p>
+    Weird?
+    <a href="mailto:rkhorana@alumni.cmu.edu" target="_blank">Contact here</a>
+  </p>
+
+</div>
 
 <%- include('footer'); -%>
