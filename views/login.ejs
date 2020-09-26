@@ -1,31 +1,33 @@
 <%- include('header', { secure: secure }); -%>
 
-<h1>Admin/<a href="/">*</a></h1>
+<div class="container center-align">
+  <h1>Admin/<a href="/">*</a></h1>
 
-<form action="/admin" method="post">
-  <div class="row left-align">
-    <div class="input-field col s10 offset-s1">
-      <input id="username" name="username" type="text">
-      <label for="username">Username</label>
+  <form action="/admin" method="post">
+    <div class="row left-align">
+      <div class="input-field col s10 offset-s1">
+        <input id="username" name="username" type="text">
+        <label for="username">Username</label>
+      </div>
     </div>
-  </div>
-  <div class="row left-align">
-    <div class="input-field col s10 offset-s1">
-      <input id="password" name="password" type="password">
-      <label for="password">Password</label>
+    <div class="row left-align">
+      <div class="input-field col s10 offset-s1">
+        <input id="password" name="password" type="password">
+        <label for="password">Password</label>
+      </div>
     </div>
-  </div>
+    <br>
+    <div class="row">
+      <button
+        class="btn-large waves-effect waves-light <% if (!secure) { %> disabled <% } %>"
+        type="submit"
+        name="action"
+      >
+        Login
+      </button>
+    </div>
+  </form>
   <br>
-  <div class="row">
-    <button
-      class="btn-large waves-effect waves-light <% if (!secure) { %> disabled <% } %>"
-      type="submit"
-      name="action"
-    >
-      Login
-    </button>
-  </div>
-</form>
-<br>
+</div>
 
 <%- include('footer'); -%>

@@ -1,51 +1,53 @@
 <%- include('header', { secure: secure }); -%>
 
-<h1>jsa.life/<a href="/admin">*</a></h1>
+<div class="container center-align">
+  <h1>jsa.life/<a href="/admin">*</a></h1>
 
-<% if (typeof error !== 'undefined') { %>
-  <body onload="M.toast({html: '<%= error %>', classes: 'toast-red'});"></body>
-<% } %>
+  <% if (typeof error !== 'undefined') { %>
+    <body onload="M.toast({html: '<%= error %>', classes: 'toast-red'});"></body>
+  <% } %>
 
-<% if (
-  typeof original !== 'undefined'
-  && typeof short !== 'undefined'
-) { %>
-  <div id="forCopy"></div>
-  <div class="shortened-modal">
-    <p class="truncate original-url">
-      <%= original %>
-    </p>
-    <p>was shortened to:</p>
-    <button class="link-button" onclick="navigator.clipboard.writeText('jsa.life/<%= short %>');M.toast({ html: 'Link copied!' });">
-      <h4 class="shortened-link">jsa.life/<%= short %></h4>
-    </button>
-    <p>Click on link to copy</p>
-  </div>
-  <br>
-<% } %>
-
-<form action="/" method="post">
-  <div class="row left-align">
-    <div class="input-field col s10 offset-s1">
-      <input required id="original" name="original" type="text">
-      <label for="original">Original URL <span class="required">(Required)</span></label>
-      <span class="helper-text">Don't forget to add http:// or https://</span>
+  <% if (
+    typeof original !== 'undefined'
+    && typeof short !== 'undefined'
+  ) { %>
+    <div id="forCopy"></div>
+    <div class="shortened-modal">
+      <p class="truncate original-url">
+        <%= original %>
+      </p>
+      <p>was shortened to:</p>
+      <button class="link-button" onclick="navigator.clipboard.writeText('jsa.life/<%= short %>');M.toast({ html: 'Link copied!' });">
+        <h4 class="shortened-link">jsa.life/<%= short %></h4>
+      </button>
+      <p>Click on link to copy</p>
     </div>
-  </div>
-  <div class="row left-align">
-    <div class="input-field col s10 offset-s1">
-      <input id="short" name="short" type="text">
-      <label for="short">Custom short (jsa.life/*)</label>
-      <span class="helper-text">May only contain characters A-Z a-z -_!</span>
+    <br>
+  <% } %>
+
+  <form action="/" method="post">
+    <div class="row left-align">
+      <div class="input-field col s10 offset-s1">
+        <input required id="original" name="original" type="text">
+        <label for="original">Original URL <span class="required">(Required)</span></label>
+        <span class="helper-text">Don't forget to add http:// or https://</span>
+      </div>
     </div>
-  </div>
+    <div class="row left-align">
+      <div class="input-field col s10 offset-s1">
+        <input id="short" name="short" type="text">
+        <label for="short">Custom short (jsa.life/*)</label>
+        <span class="helper-text">May only contain characters A-Z a-z -_!</span>
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <button class="btn-large waves-effect waves-light" type="submit" name="action">
+        shorten
+      </button>
+    </div>
+  </form>
   <br>
-  <div class="row">
-    <button class="btn-large waves-effect waves-light" type="submit" name="action">
-      shorten
-    </button>
-  </div>
-</form>
-<br>
+</div>
 
 <%- include('footer'); -%>

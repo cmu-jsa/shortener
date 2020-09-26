@@ -43,10 +43,9 @@ a {
   max-height: 60vh;
 }
 
-.hidden {
-  position: fixed;
-  left: -100px;
-  top: -100px
+.admin-nav {
+  padding: 0 5vw;
+  background-color: #2e3192;
 }
 
 .required {
