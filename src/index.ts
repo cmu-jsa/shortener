@@ -39,6 +39,7 @@ import API from './API';
  */
 import { LinkData, ResultObj } from './types';
 import Authenticator from './Authenticator';
+import DenyList from './DenyList';
 
 /**
  * Environment Variables
@@ -53,7 +54,8 @@ const redisURL: string = process.env.REDIS_URL || '';
  */
 const app: Application = express();
 const db: RedisClient = redis.createClient(redisURL);
-const shortener = new Shortener(db);
+const denyList = new DenyList(db);
+const shortener = new Shortener(db, denyList);
 const authenticator = new Authenticator(db);
 const api = new API(shortener, authenticator).getRouter();
 const RedisStore = connectRedis(session);

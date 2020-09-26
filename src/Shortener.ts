@@ -19,6 +19,7 @@ import validator from 'validator';
 /**
  * Custom modules
  */
+import DenyList from './DenyList';
 import logger from './logger';
 
 /**
@@ -36,6 +37,9 @@ export default class Shortener {
   // Stores all generated shorts for quick ref.
   private generatedShorts: Set<string>;
 
+  // The denyList
+  private denyList: DenyList;
+
   // Declaring original hget wrapper for promisify.
   private hget: Function;
 
@@ -45,14 +49,15 @@ export default class Shortener {
   /**
    * Constructs a db interface for url shortening operations.
    */
-  constructor(db: RedisClient) {
+  constructor(db: RedisClient, denyList: DenyList) {
     this.db = db;
+    this.denyList = denyList;
     this.hget = promisify(db.hget).bind(db);
     this.hgetall = promisify(db.hgetall).bind(db);
     this.generatedShorts = new Set();
     this.populateGeneratedShorts()
-      .then(() => logger.success('Successfully populated set from db'))
-      .catch(err => logger.error('Could not populate set from db', err));
+      .then(() => logger.success('Successfully populated short set from db'))
+      .catch(err => logger.error('Could not populate short set from db', err));
   }
 
   /**
@@ -178,18 +183,9 @@ export default class Shortener {
     }
 
     /*
-     * deny-list
-     *
-     * todo:
-     *   - Use db storage for deny-list
-     *   - Make it configurable on the admin page.
+     * Check denyList of keywords
      */
-    const denyList = [
-      'datecontacts-store1',
-      'dirtyvalentine',
-      'mosthoties',
-    ];
-    if (denyList.some(keyword => original.includes(keyword))) {
+    if (this.denyList.getList().some(keyword => original.includes(keyword))) {
       result.success = false;
       result.output = 'The original URL contains a blocked string';
       return result;
