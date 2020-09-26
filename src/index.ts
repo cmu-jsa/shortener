@@ -162,16 +162,19 @@ app.get('/admin', (req: Request, res: Response) => {
     res.render('login', { secure: req.secure });
   } else {
     shortener.getAll()
-      .then((data: LinkData[]) => {
+      .then((shorts: LinkData[]) => {
         // Sort based on number of views
         // eslint-disable-next-line arrow-body-style
-        data.sort((a: LinkData, b: LinkData) => {
+        shorts.sort((a: LinkData, b: LinkData) => {
           return parseInt(a.views, 10) >= parseInt(b.views, 10) ? -1 : 1;
         });
+
+        // Get list of denyList
         res.render('admin', {
-          data,
+          shorts,
           isAdmin: user === 'admin',
           secure: req.secure,
+          denyList: denyList.getList(),
         });
       })
       .catch((err: Error) => {
@@ -221,12 +224,40 @@ app.post('/admin', requireHttps, (req: Request, res: Response) => {
 /**
  * POST to remove a short: original pair from db.
  */
-app.post('/remove', requireHttps, (req: Request, res: Response) => {
+app.post('/short/remove', requireHttps, (req: Request, res: Response) => {
   // Check if the user is logged in as admin
   // @ts-ignore
   if (req.session.user === 'admin') {
     const { short } = req.body;
     shortener.del(short);
+  }
+
+  res.redirect('/admin');
+});
+
+/**
+ * POST to add a denyList keyword
+ */
+app.post('/denyList/add', requireHttps, (req: Request, res: Response) => {
+  // Check if the user is logged in as admin
+  // @ts-ignore
+  if (req.session.user === 'admin') {
+    const { keyword } = req.body;
+    denyList.add(keyword);
+  }
+
+  res.redirect('/admin');
+});
+
+/**
+ * POST to remove a denyList keyword
+ */
+app.post('/denyList/remove', requireHttps, (req: Request, res: Response) => {
+  // Check if the user is logged in as admin
+  // @ts-ignore
+  if (req.session.user === 'admin') {
+    const { keyword } = req.body;
+    denyList.rem(keyword);
   }
 
   res.redirect('/admin');
