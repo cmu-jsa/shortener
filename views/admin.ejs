@@ -16,8 +16,10 @@
       <ul class="right hide-on-med-and-down">
         <li><a href="#logout">Logout</a></li>
         <li><a href="#shorts">Shorts</a></li>
-        <li><a href="#denyList">DenyList</a></li>
-        <li><a href="#users">Users</a></li>
+        <% if (isAdmin) { %>
+          <li><a href="#denyList">DenyList</a></li>
+          <li><a href="#users">Users</a></li>
+        <% } $>
       </ul>
     </div>
   </nav>
@@ -27,8 +29,10 @@
 <ul class="sidenav" id="side-nav">
   <li><a href="#logout">Logout</a></li>
   <li><a href="#shorts">Shorts</a></li>
-  <li><a href="#denyList">DenyList</a></li>
-  <li><a href="#users">Users</a></li>
+  <% if (isAdmin) { %>
+    <li><a href="#denyList">DenyList</a></li>
+    <li><a href="#users">Users</a></li>
+  <% } $>
 </ul>
 
 <div class="container center-align">
