@@ -38,7 +38,7 @@ import API from './API';
  * Types
  */
 import { LinkData, ResultObj } from './types';
-import Authenticator from './Authenticator';
+import Users from './Users';
 import DenyList from './DenyList';
 
 /**
@@ -56,8 +56,8 @@ const app: Application = express();
 const db: RedisClient = redis.createClient(redisURL);
 const denyList = new DenyList(db);
 const shortener = new Shortener(db, denyList);
-const authenticator = new Authenticator(db);
-const api = new API(shortener, authenticator).getRouter();
+const users = new Users(db);
+const api = new API(shortener, users).getRouter();
 const RedisStore = connectRedis(session);
 app.enable('trust proxy');
 
@@ -94,7 +94,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 60 * 60 * 1000,
+    maxAge: 3 * 60 * 60 * 1000, // 3 hours,
   },
 }));
 
@@ -157,80 +157,90 @@ app.post('/', (req: Request, res: Response) => {
  */
 app.get('/admin', (req: Request, res: Response) => {
   // @ts-ignore
-  const { user } = req.session;
-  if (user !== 'admin' && user !== 'user') {
-    res.render('login', { secure: req.secure });
-  } else {
-    shortener.getAll()
-      .then((shorts: LinkData[]) => {
-        // Sort based on number of views
-        // eslint-disable-next-line arrow-body-style
-        shorts.sort((a: LinkData, b: LinkData) => {
-          return parseInt(a.views, 10) >= parseInt(b.views, 10) ? -1 : 1;
-        });
+  const { username } = req.session;
+  users.checkMembership(username)
+    .then((result) => {
+      const { isMember, isAdmin } = result;
+      if (!isMember) {
+        res.render('login', { secure: req.secure });
+      } else {
+        shortener.getAll()
+          .then((shorts: LinkData[]) => {
+            // Sort based on number of views
+            // eslint-disable-next-line arrow-body-style
+            shorts.sort((a: LinkData, b: LinkData) => {
+              return parseInt(a.views, 10) >= parseInt(b.views, 10) ? -1 : 1;
+            });
 
-        // Get list of denyList
-        res.render('admin', {
-          shorts,
-          isAdmin: user === 'admin',
-          secure: req.secure,
-          denyList: denyList.getList(),
-        });
-      })
-      .catch((err: Error) => {
-        logger.error('Redis error in /admin', err);
-        res.render('admin', { secure: req.secure });
-      });
-  }
+            // Get list of denyList
+            res.render('admin', {
+              shorts,
+              isAdmin,
+              secure: true,
+              denyList: denyList.getList(),
+              username,
+            });
+          })
+          .catch((err: Error) => {
+            logger.error('Redis error in /admin', err);
+            res.render('admin', { secure: req.secure });
+          });
+      }
+    })
+    .catch(() => {
+      res.render('admin', { secure: req.secure });
+    });
 });
 
 /**
  * POST admin to check if login credentials match.
  */
-app.post('/admin', requireHttps, (req: Request, res: Response) => {
+app.post('/admin/login', requireHttps, (req: Request, res: Response) => {
   const {
     username,
     password,
   } = req.body;
-  authenticator.authenticate(username, password, true)
+  users.authenticate(username, password, true)
     .then((authenticatedAdmin) => {
       if (authenticatedAdmin) {
         // @ts-ignore
-        req.session.user = 'admin';
+        req.session.username = username;
         res.redirect('/admin');
       } else {
-        authenticator.authenticate(username, password, false)
+        users.authenticate(username, password, false)
           .then((authenticatedUser) => {
             if (authenticatedUser) {
               // @ts-ignore
-              req.session.user = 'user';
+              req.session.username = username;
               res.redirect('/admin');
             } else {
-              res.render('login', { secure: req.secure });
+              res.redirect('/admin');
             }
           })
           .catch((e) => {
             logger.error('Authentication failed unexpectedly', e);
-            res.render('login', { secure: req.secure });
+            res.redirect('/admin');
           });
       }
     })
     .catch((e) => {
       logger.error('Authentication failed unexpectedly', e);
-      res.render('login', { secure: req.secure });
+      res.redirect('/admin');
     });
 });
 
 /**
  * POST to remove a short: original pair from db.
  */
-app.post('/short/remove', requireHttps, (req: Request, res: Response) => {
+app.post('/admin/short/remove', requireHttps, (req: Request, res: Response) => {
   // Check if the user is logged in as admin
   // @ts-ignore
-  if (req.session.user === 'admin') {
-    const { short } = req.body;
-    shortener.del(short);
-  }
+  users.checkMembership(req.session.username)
+    .then((result) => {
+      if (result.isAdmin) {
+        shortener.del(req.body.short);
+      }
+    });
 
   res.redirect('/admin');
 });
@@ -238,13 +248,15 @@ app.post('/short/remove', requireHttps, (req: Request, res: Response) => {
 /**
  * POST to add a denyList keyword
  */
-app.post('/denyList/add', requireHttps, (req: Request, res: Response) => {
+app.post('/admin/denyList/add', requireHttps, (req: Request, res: Response) => {
   // Check if the user is logged in as admin
   // @ts-ignore
-  if (req.session.user === 'admin') {
-    const { keyword } = req.body;
-    denyList.add(keyword);
-  }
+  users.checkMembership(req.session.username)
+    .then((result) => {
+      if (result.isAdmin) {
+        denyList.add(req.body.keyword);
+      }
+    });
 
   res.redirect('/admin');
 });
@@ -252,13 +264,15 @@ app.post('/denyList/add', requireHttps, (req: Request, res: Response) => {
 /**
  * POST to remove a denyList keyword
  */
-app.post('/denyList/remove', requireHttps, (req: Request, res: Response) => {
+app.post('/admin/denyList/remove', requireHttps, (req: Request, res: Response) => {
   // Check if the user is logged in as admin
   // @ts-ignore
-  if (req.session.user === 'admin') {
-    const { keyword } = req.body;
-    denyList.rem(keyword);
-  }
+  users.checkMembership(req.session.username)
+    .then((result) => {
+      if (result.isAdmin) {
+        denyList.rem(req.body.keyword);
+      }
+    });
 
   res.redirect('/admin');
 });
@@ -266,7 +280,7 @@ app.post('/denyList/remove', requireHttps, (req: Request, res: Response) => {
 /**
  * POST to log out.
  */
-app.post('/logout', requireHttps, (req: Request, res: Response) => {
+app.post('/admin/logout', requireHttps, (req: Request, res: Response) => {
   if (req.session) {
     req.session.destroy((err: Error | null) => {
       if (err) {
@@ -302,7 +316,7 @@ app.all('/:short', (req: Request, res: Response) => {
         logger.error('Redis error in /:short', err);
         res.render('index', {
           error: 'There was a DB error. Please contact rkhorana@alumni.cmu.edu',
-          secure: req.secure,
+          secure: true,
         });
       });
   }
@@ -323,7 +337,7 @@ app.all('*', (req: Request, res: Response) => {
     const selectedImg: string = images[randomIndex];
     return res.render('404', {
       img: `/assets/404/${selectedImg}`,
-      secure: req.secure,
+      secure: true,
     });
   });
 });

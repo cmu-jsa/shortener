@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Japanese Student Association at Carnegie Mellon University.
+ * Copyright 2019 - 2020 Japanese Student Association at Carnegie Mellon University.
  * All rights reserved. MIT license.
  */
 
@@ -57,7 +57,7 @@ export default class DenyList {
   private async populateDenyList() {
     const data = await this.smembers('denyList');
     if (data != null) {
-      Object.keys(data).forEach((deny: string) => {
+      data.forEach((deny: string) => {
         this.denyList.add(deny);
       });
     }
@@ -68,8 +68,10 @@ export default class DenyList {
   }
 
   async add(str: string) {
-    await this.sadd('denyList', str);
-    this.denyList.add(str);
+    if (str.length > 5) {
+      await this.sadd('denyList', str);
+      this.denyList.add(str);
+    }
   }
 
   async rem(str: string) {
