@@ -21,7 +21,7 @@ import cors from 'cors';
  * Custom
  */
 import Shortener from './Shortener';
-import Authenticator from './Authenticator';
+import Users from './Users';
 import logger from './logger';
 
 /**
@@ -33,15 +33,15 @@ export default class API {
   // The shortener interface
   private shortener: Shortener;
 
-  // The authenticator interface
-  private authenticator: Authenticator;
+  // The users interface
+  private users: Users;
 
   // The router to serve all API calls
   private router: Router;
 
-  constructor(shortener: Shortener, authenticator: Authenticator) {
+  constructor(shortener: Shortener, users: Users) {
     this.shortener = shortener;
-    this.authenticator = authenticator;
+    this.users = users;
     this.router = express.Router();
     this.asyncAuthorizer = this.asyncAuthorizer.bind(this);
     this.setupRouter();
@@ -79,7 +79,7 @@ export default class API {
   }
 
   private asyncAuthorizer(username: string, password: string, cb: Function) {
-    this.authenticator.authenticate(username, password)
+    this.users.authenticate(username, password)
       .then(authorized => cb(null, authorized))
       .catch(() => cb(null, false));
   }

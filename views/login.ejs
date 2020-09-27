@@ -3,16 +3,16 @@
 <div class="container center-align">
   <h1>Admin/<a href="/">*</a></h1>
 
-  <form action="/admin" method="post">
+  <form action="/admin/login" method="post">
     <div class="row left-align">
       <div class="input-field col s10 offset-s1">
-        <input id="username" name="username" type="text">
+        <input id="username" name="username" type="text" <% if (!secure) { %> disabled <% } %>>
         <label for="username">Username</label>
       </div>
     </div>
     <div class="row left-align">
       <div class="input-field col s10 offset-s1">
-        <input id="password" name="password" type="password">
+        <input id="password" name="password" type="password" <% if (!secure) { %> disabled <% } %>>
         <label for="password">Password</label>
       </div>
     </div>

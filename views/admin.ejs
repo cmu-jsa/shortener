@@ -14,10 +14,12 @@
       <!-- Only appears on mobile -->
       <a href="#" data-target="side-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
       <ul class="right hide-on-med-and-down">
-        <li><a href="#logout">Logout</a></li>
+        <li><a href="#userInfo">User: <%= username %></a></li>
         <li><a href="#shorts">Shorts</a></li>
-        <li><a href="#denyList">DenyList</a></li>
-        <li><a href="#users">Users</a></li>
+        <% if (isAdmin) { %>
+          <li><a href="#denyList">DenyList</a></li>
+          <li><a href="#users">Users</a></li>
+        <% } %>
       </ul>
     </div>
   </nav>
@@ -25,16 +27,19 @@
 
 <!-- Only appears on mobile -->
 <ul class="sidenav" id="side-nav">
-  <li><a href="#logout">Logout</a></li>
+  <li><a href="#userInfo">User: <%= username %></a></li>
   <li><a href="#shorts">Shorts</a></li>
-  <li><a href="#denyList">DenyList</a></li>
-  <li><a href="#users">Users</a></li>
+  <% if (isAdmin) { %>
+    <li><a href="#denyList">DenyList</a></li>
+    <li><a href="#users">Users</a></li>
+  <% } %>
 </ul>
 
 <div class="container center-align">
   <div class="row">
-    <h1 id="logout">Admin/<a href="/">*</a></h1>
-    <form action="/logout" method="post">
+    <h1 id="userInfo">Admin/<a href="/">*</a></h1>
+    <h4>User: <%= username %></h4>
+    <form action="/admin/logout" method="post">
       <div class="row">
         <button class="btn-large waves-effect waves-light" type="submit" name="action">
           Logout
@@ -68,7 +73,7 @@
               <td><%= linkInfo.user %></td>
               <td>
                 <% if (isAdmin) { %>
-                  <form action="/short/remove" method="post">
+                  <form action="/admin/short/remove" method="post">
                     <input type="hidden" name="short" value=<%= linkInfo.short %>>
                     <button class="btn-remove" type="submit" name="remove">
                       Remove
@@ -86,7 +91,7 @@
     <div class="row">
       <h1 id="denyList">Deny List</h1>
       <div class="col s10 offset-s1">
-        <form action="/denyList/add" method="post">
+        <form action="/admin/denyList/add" method="post">
           <div class="row left-align">
             <div class="input-field col s10 offset-s1">
               <input id="keyword" name="keyword" type="text">
@@ -113,9 +118,9 @@
           <tbody>
             <% denyList.forEach(keyword => { %>
               <tr>
-                <td><%= keyword%></td>
+                <td><%= keyword %></td>
                 <td>
-                  <form action="/denyList/remove" method="post">
+                  <form action="/admin/denyList/remove" method="post">
                     <input type="hidden" name="keyword" value=<%= keyword %>>
                     <button class="btn-remove" type="submit" name="remove">
                       Remove
