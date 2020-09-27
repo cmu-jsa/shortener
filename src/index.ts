@@ -176,7 +176,7 @@ app.get('/admin', (req: Request, res: Response) => {
             res.render('admin', {
               shorts,
               isAdmin,
-              secure: true,
+              secure: req.secure,
               denyList: denyList.getList(),
               username,
             });
@@ -316,7 +316,7 @@ app.all('/:short', (req: Request, res: Response) => {
         logger.error('Redis error in /:short', err);
         res.render('index', {
           error: 'There was a DB error. Please contact rkhorana@alumni.cmu.edu',
-          secure: true,
+          secure: req.secure,
         });
       });
   }
@@ -337,7 +337,7 @@ app.all('*', (req: Request, res: Response) => {
     const selectedImg: string = images[randomIndex];
     return res.render('404', {
       img: `/assets/404/${selectedImg}`,
-      secure: true,
+      secure: req.secure,
     });
   });
 });
