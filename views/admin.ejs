@@ -2,10 +2,28 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const elements = document.querySelectorAll('.sidenav');
-    const instances = M.Sidenav.init(elements);
+    const sideNavElements = document.querySelectorAll('.sidenav');
+    const sideNavInstances = M.Sidenav.init(sideNavElements);
+    const modalElements = document.querySelectorAll('.modal');
+    const modalInstances = M.Modal.init(modalElements);
   });
 </script>
+
+<% if (typeof adminSuccess !== 'undefined') { %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      M.toast({html: '<%= adminSuccess %>', classes: 'toast-green'});
+    });
+  </script>
+<% } %>
+
+<% if (typeof adminError !== 'undefined') { %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      M.toast({html: '<%= adminError %>', classes: 'toast-red'});
+    });
+  </script>
+<% } %>
 
 <div class="navbar-fixed">
   <nav class="admin-nav">
@@ -13,6 +31,7 @@
       <a href="/admin" class="brand-logo">jsa.life/*</a>
       <!-- Only appears on mobile -->
       <a href="#" data-target="side-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+      <!-- Doesn't appear on mobile -->
       <ul class="right hide-on-med-and-down">
         <li><a href="#userInfo">User: <%= username %></a></li>
         <li><a href="#shorts">Shorts</a></li>
@@ -36,17 +55,76 @@
 </ul>
 
 <div class="container center-align">
+
+  <!-- User Info -->
   <div class="row">
     <h1 id="userInfo">Admin/<a href="/">*</a></h1>
-    <h4>User: <%= username %></h4>
+    <div class="col s12">
+      <table class="table">
+        <thead>
+          <tr>
+            <th width="25%">Username</th>
+            <th width="45%"># of URLs generated via API or chrome extension</th>
+            <th width="30%">Password</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr>
+              <td><%= username %></td>
+              <td><%= shorts.reduce((accumulator, currentLink) => {
+                return (currentLink.user === username) ? accumulator + 1 : accumulator;
+              }, 0) %></td>
+              <td>
+                <a class="waves-effect waves-light modal-trigger" href="#passwordChangeModal">Change</a>
+                <!-- Password Change Modal -->
+                <div id="passwordChangeModal" class="modal">
+                  <div class="modal-content">
+                    <form action="/admin/password/update" method="post">
+                      <div class="row left-align">
+                        <div class="input-field col s10 offset-s1">
+                          <input id="oldPassword" name="oldPassword" type="password">
+                          <label for="oldPassword">Old Password</label>
+                        </div>
+                      </div>
+                      <div class="row left-align">
+                        <div class="input-field col s10 offset-s1">
+                          <input id="newPassword" name="newPassword" type="password">
+                          <label for="newPassword">New Password</label>
+                        </div>
+                      </div>
+                      <div class="row left-align">
+                        <div class="input-field col s10 offset-s1">
+                          <input id="confirmPassword" name="confirmPassword" type="password">
+                          <label for="confirmPassword">Confirm New Password</label>
+                        </div>
+                      </div>
+                      <div class="row center-align">
+                        <button
+                          class="btn-large waves-effect waves-light"
+                          type="submit"
+                          name="action"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
     <form action="/admin/logout" method="post">
       <div class="row">
-        <button class="btn-large waves-effect waves-light" type="submit" name="action">
+        <button class="btn-large waves-effect waves-light btn-logout" type="submit" name="action">
           Logout
         </button>
       </div>
     </form>
   </div>
+
+  <!-- Shorts -->
   <div class="row">
     <h1 id="shorts">Shorts</h1>
     <div class="col s12">
@@ -72,7 +150,7 @@
               <td class="table-cell truncate"><%= linkInfo.original %></td>
               <td><%= linkInfo.user %></td>
               <td>
-                <% if (isAdmin) { %>
+                <% if (isAdmin || linkInfo.user === username) { %>
                   <form action="/admin/short/remove" method="post">
                     <input type="hidden" name="short" value=<%= linkInfo.short %>>
                     <button class="btn-remove" type="submit" name="remove">
@@ -88,6 +166,8 @@
     </div>
   </div>
   <% if (isAdmin) { %>
+
+    <!-- Deny List -->
     <div class="row">
       <h1 id="denyList">Deny List</h1>
       <div class="col s10 offset-s1">

@@ -48,6 +48,10 @@ a {
   background-color: #2e3192;
 }
 
+.btn-logout {
+  margin-top: 5vh;
+}
+
 .required {
   color: #ec8a90;
   font-size: 0.8em;
@@ -79,6 +83,10 @@ a {
 
 .link-button:focus {
   background: none;
+}
+
+.toast-green {
+  background: #3f9c44;
 }
 
 .toast-red {
