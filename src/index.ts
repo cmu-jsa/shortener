@@ -157,7 +157,11 @@ app.post('/', (req: Request, res: Response) => {
  */
 app.get('/admin', (req: Request, res: Response) => {
   // @ts-ignore
-  const { username } = req.session;
+  const { username, adminSuccess, adminError } = req.session;
+  // @ts-ignore
+  req.session.adminSuccess = undefined;
+  // @ts-ignore
+  req.session.adminError = undefined;
   users.checkMembership(username)
     .then((result) => {
       const { isMember, isAdmin } = result;
@@ -172,18 +176,22 @@ app.get('/admin', (req: Request, res: Response) => {
               return parseInt(a.views, 10) >= parseInt(b.views, 10) ? -1 : 1;
             });
 
-            // Get list of denyList
             res.render('admin', {
               shorts,
               isAdmin,
               secure: req.secure,
               denyList: denyList.getList(),
               username,
+              adminSuccess,
+              adminError,
             });
           })
           .catch((err: Error) => {
             logger.error('Redis error in /admin', err);
-            res.render('admin', { secure: req.secure });
+            res.render('admin', {
+              secure: req.secure,
+              adminError: 'Something went wrong',
+            });
           });
       }
     })
@@ -227,6 +235,65 @@ app.post('/admin/login', requireHttps, (req: Request, res: Response) => {
       logger.error('Authentication failed unexpectedly', e);
       res.redirect('/admin');
     });
+});
+
+/**
+ * POST to update user password.
+ */
+app.post('/admin/password/update', requireHttps, (req: Request, res: Response) => {
+  // @ts-ignore
+  const { username } = req.session;
+  const {
+    oldPassword,
+    newPassword,
+    confirmPassword,
+  } = req.body;
+  const successMessage = 'Updated password';
+  const errorMessage = 'Couldn\'t update password';
+  if (
+    newPassword !== ''
+    && newPassword !== oldPassword
+    && newPassword === confirmPassword
+  ) {
+    users.checkMembership(username)
+      .then((result) => {
+        const { isMember, isAdmin } = result;
+        if (!isMember) {
+          // @ts-ignore
+          req.session.adminError = errorMessage;
+          res.redirect('/admin');
+        } else {
+          users.updatePassword(username, oldPassword, newPassword, isAdmin)
+            .then((updated) => {
+              if (!updated) {
+                // @ts-ignore
+                req.session.adminError = errorMessage;
+                logger.warn(`Couldn't update password for ${username}`);
+              } else {
+                // @ts-ignore
+                req.session.adminSuccess = successMessage;
+                logger.success(`Updated password for ${username}`);
+              }
+
+              res.redirect('/admin');
+            })
+            .catch(() => {
+              // @ts-ignore
+              req.session.adminError = errorMessage;
+              res.redirect('/admin');
+            });
+        }
+      })
+      .catch(() => {
+        // @ts-ignore
+        req.session.adminError = errorMessage;
+        res.redirect('/admin');
+      });
+  } else {
+    // @ts-ignore
+    req.session.adminError = errorMessage;
+    res.redirect('/admin');
+  }
 });
 
 /**
