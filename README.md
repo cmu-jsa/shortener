@@ -52,7 +52,6 @@ Sample response:
 
 You must have the following available on your local machine:
 - Node.js + npm
-- yarn (available via npm)
 - redis (For mac users: `brew install redis`)
 
 ## Installation
@@ -61,9 +60,6 @@ You must have the following available on your local machine:
 # Confirm node version >= 10.15.0
 $ node -v
 
-# Confirm yarn version >= 1.17.3
-$ yarn -v
-
 # Clone the repository
 $ git clone https://github.com/cmu-jsa/shortener.git
 
@@ -71,7 +67,7 @@ $ git clone https://github.com/cmu-jsa/shortener.git
 $ cd shortener
 
 # Install dependencies
-$ yarn
+$ npm i
 ```
 
 ## Dev
@@ -80,21 +76,21 @@ Will run on http://localhost:5000
 
 ```sh
 # Start db server
-$ yarn db
+$ npm run db
 
 # Start app server (in new tab)
-$ yarn dev
+$ npm run dev
 ```
 
 Pre-push
 
 ```sh
 # Build (Resolve any TypeScript errors)
-$ yarn build
+$ npm run build
 
 # Style check
-$ yarn lint
+$ npm run lint
 
 # Run compiled JS
-$ yarn start
+$ npm start
 ```
