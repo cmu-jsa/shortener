@@ -141,7 +141,9 @@ app.post('/', (req: Request, res: Response) => {
 
   // All checks have passed
   } else {
-    shortener.set(short, original);
+    // @ts-ignore
+    const { username } = req.session;
+    shortener.set(short, original, username);
     logger.success('Succeeded in creating short');
     res.render('index', {
       original,
