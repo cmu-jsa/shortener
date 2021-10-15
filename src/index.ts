@@ -126,31 +126,42 @@ app.get('/', (req: Request, res: Response) => {
  * POST to home to register new original: short pair.
  */
 app.post('/', (req: Request, res: Response) => {
-  const original = req.body.original || '';
-  const short = req.body.short || shortener.makeShort();
-  logger.info(`Validating ${short}: ${original}`);
+  // @ts-ignore
+  const { username } = req.session;
+  users.checkMembership(username)
+    .then((membership) => {
+      const { isMember } = membership;
+      if (!isMember) {
+        res.render('login', { secure: req.secure || nodeEnv === 'debug' });
+      } else {
+        const original = req.body.original || '';
+        const short = req.body.short || shortener.makeShort();
+        logger.info(`Validating ${short}: ${original}`);
 
-  // Validates input first
-  const result: ResultObj = shortener.validateInput(original, short);
-  if (!result.success) {
-    logger.warn(result.output);
-    res.render('index', {
-      error: result.output,
-      secure: req.secure,
-    });
+        // Validates input first
+        const result: ResultObj = shortener.validateInput(original, short);
+        if (!result.success) {
+          logger.warn(result.output);
+          res.render('index', {
+            error: result.output,
+            secure: req.secure,
+          });
 
-  // All checks have passed
-  } else {
-    // @ts-ignore
-    const { username } = req.session;
-    shortener.set(short, original, username);
-    logger.success('Succeeded in creating short');
-    res.render('index', {
-      original,
-      short,
-      secure: req.secure,
+        // All checks have passed
+        } else {
+          shortener.set(short, original, username);
+          logger.success('Succeeded in creating short');
+          res.render('index', {
+            original,
+            short,
+            secure: req.secure,
+          });
+        }
+      }
+    })
+    .catch(() => {
+      res.render('login', { secure: req.secure || nodeEnv === 'debug' });
     });
-  }
 });
 
 /**
