@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 - 2020
+ * Copyright 2019 - 2021
  * Japanese Student Association at Carnegie Mellon University.
  * All rights reserved. MIT license.
  */
@@ -186,4 +186,16 @@ a {
 
 .input-field .helper-text {
   color: #555555;
+}
+
+/* the check mark */
+[type="checkbox"]:checked+span:not(.lever):before {
+  border-right: 2px solid #f2001f !important;
+  border-bottom: 2px solid #f2001f !important;
+}
+
+/* how the check mark box looks when selected */
+[type="checkbox"].filled-in:checked+span:not(.lever):after {
+  background-color: #eeeeee !important;
+  border: 2px solid #f2001f;
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 - 2020
+ * Copyright 2019 - 2021
  * Japanese Student Association at Carnegie Mellon University.
  * All rights reserved. MIT license.
  */
@@ -132,7 +132,7 @@ app.post('/', (req: Request, res: Response) => {
     .then((membership) => {
       const { isMember } = membership;
       if (!isMember) {
-        res.render('login', { secure: req.secure || nodeEnv === 'debug' });
+        res.render('login', { secure: req.secure });
       } else {
         const original = req.body.original || '';
         const short = req.body.short || shortener.makeShort();
@@ -160,7 +160,7 @@ app.post('/', (req: Request, res: Response) => {
       }
     })
     .catch(() => {
-      res.render('login', { secure: req.secure || nodeEnv === 'debug' });
+      res.render('login', { secure: req.secure });
     });
 });
 
@@ -179,10 +179,10 @@ app.get('/admin', (req: Request, res: Response) => {
     .then((result) => {
       const { isMember, isAdmin } = result;
       if (!isMember) {
-        res.render('login', { secure: req.secure || nodeEnv === 'debug' });
+        res.render('login', { secure: req.secure });
       } else {
         shortener.getAll()
-          .then((shorts: LinkData[]) => {
+          .then(async (shorts: LinkData[]) => {
             // Sort based on number of views
             // eslint-disable-next-line arrow-body-style
             shorts.sort((a: LinkData, b: LinkData) => {
@@ -197,6 +197,7 @@ app.get('/admin', (req: Request, res: Response) => {
               username,
               adminSuccess,
               adminError,
+              users: await users.listAll(),
             });
           })
           .catch((err: Error) => {
@@ -353,6 +354,55 @@ app.post('/admin/denyList/remove', requireHttps, (req: Request, res: Response) =
         denyList.rem(req.body.keyword);
       }
     });
+
+  res.redirect('/admin');
+});
+
+/**
+ * POST to reset a password
+ */
+app.post('/admin/users/resetPassword', requireHttps, async (req: Request, res: Response) => {
+  // Check if the user is logged in as admin
+  // @ts-ignore
+  const result = await users.checkMembership(req.session.username);
+  if (result.isAdmin) {
+    users.resetPassword(req.body.username, req.body.role);
+  }
+
+  res.redirect('/admin');
+});
+
+/**
+ * POST to remove a user
+ */
+app.post('/admin/users/removeUser', requireHttps, async (req: Request, res: Response) => {
+  // Check if the user is logged in as admin
+  // @ts-ignore
+  const result = await users.checkMembership(req.session.username);
+  if (result.isAdmin) {
+    users.removeMember(req.body.username, req.body.role);
+  }
+
+  res.redirect('/admin');
+});
+
+/**
+ * POST to register a user
+ */
+app.post('/admin/users/registerUser', requireHttps, async (req: Request, res: Response) => {
+  // Check if the user is logged in as admin
+  // @ts-ignore
+  const result = await users.checkMembership(req.session.username);
+  if (result.isAdmin) {
+    const { username, tempPassword, isAdmin } = req.body;
+    if (username) {
+      await users.addNewMember(
+        username,
+        tempPassword,
+        isAdmin === 'on',
+      );
+    }
+  }
 
   res.redirect('/admin');
 });

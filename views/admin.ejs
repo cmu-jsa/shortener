@@ -175,7 +175,7 @@
           <div class="row left-align">
             <div class="input-field col s10 offset-s1">
               <input id="keyword" name="keyword" type="text">
-              <label for="keyword">Keyword</label>
+              <label for="keyword">Keyword (> 5 letters)</label>
             </div>
           </div>
           <div class="row">
@@ -209,6 +209,86 @@
                 </td>
               </tr>
             <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+  <% if (isAdmin) { %>
+    <!-- Users list -->
+    <div class="row">
+      <h1 id="users">Users</h1>
+      <!-- Add new user -->
+      <a class="waves-effect waves-light modal-trigger" href="#newUserModal">Register new user</a>
+      <div id="newUserModal" class="modal">
+        <div class="modal-content">
+          <form action="/admin/users/registerUser" method="post">
+            <div class="row left-align">
+              <div class="input-field col s10 offset-s1">
+                <input id="username" name="username" type="text">
+                <label for="username">Username</label>
+              </div>
+            </div>
+            <div class="row left-align">
+              <div class="input-field col s10 offset-s1">
+                <input id="tempPassword" name="tempPassword" type="password">
+                <label for="tempPassword">Temp Password (default is "abcd")</label>
+              </div>
+            </div>
+            <div class="row center-align">
+              <label>
+                <input id="isAdmin" name="isAdmin" type="checkbox" />
+                <span>Make Admin</span>
+              </label>
+            </div>
+            <div class="row center-align">
+              <button
+                class="btn-large waves-effect waves-light"
+                type="submit"
+              >
+                Register
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col s12">
+        <table class="table">
+          <thead>
+            <tr>
+              <th width="55%">Username</th>
+              <th width="10%">Role</th>
+              <th width="20%"></th>
+              <th width="15%"></th>
+            </tr>
+          </thead>
+          <tbody>
+              <% users.forEach(user => { %>
+                <% if (user.username !== username) { %>
+                  <tr>
+                    <td><%= user.username %></td>
+                    <td><%= user.role %></td>
+                    <td>
+                      <form action="/admin/users/resetPassword" method="post">
+                        <input type="hidden" name="username" value=<%= user.username %>>
+                        <input type="hidden" name="role" value=<%= user.role %>>
+                        <button class="btn-remove" type="submit" name="resetPassword">
+                          Reset Password to "abcd"
+                        </button>
+                      </form>
+                    </td>
+                    <td>
+                      <form action="/admin/users/removeUser" method="post">
+                        <input type="hidden" name="username" value=<%= user.username %>>
+                        <input type="hidden" name="role" value=<%= user.role %>>
+                        <button class="btn-remove" type="submit" name="removeUser">
+                          Remove User
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% } %>
+              <% }); %>
           </tbody>
         </table>
       </div>

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 - 2020 Japanese Student Association at Carnegie Mellon University.
+ * Copyright 2019 - 2021 Japanese Student Association at Carnegie Mellon University.
  * All rights reserved. MIT license.
  */
 
