@@ -132,9 +132,9 @@ export default class Shortener {
    * Returns an array of LinkData stored in db.
    */
   async getAll(): Promise<LinkData[]> {
-    const originals: RedisDataObject = await this.hgetall('s');
-    const views: RedisDataObject = await this.hgetall('v');
-    const users: RedisDataObject = await this.hgetall('u');
+    const originals: RedisDataObject = await this.hgetall('s') || {};
+    const views: RedisDataObject = await this.hgetall('v') || {};
+    const users: RedisDataObject = await this.hgetall('u') || {};
     return Object.keys(originals).map((short: string) => ({
       short,
       original: originals[short],

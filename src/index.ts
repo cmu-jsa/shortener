@@ -23,7 +23,6 @@ import express, {
 } from 'express';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
-import bodyParser from 'body-parser';
 import redis, { RedisClient } from 'redis';
 import isImage from 'is-image';
 
@@ -48,6 +47,7 @@ dotenv.config();
 const url: string = process.env.ROOT_URL || 'http://localhost:5000';
 const port: string = process.env.PORT || '5000';
 const redisURL: string = process.env.REDIS_URL || '';
+const nodeEnv: string = process.env.NODE_ENV || 'production';
 
 /**
  * App settings
@@ -84,8 +84,8 @@ setInterval(() => {
 app.use('/api', api);
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../favicon')));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(session({
   store: new RedisStore({
     client: db,
@@ -94,7 +94,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 3 * 60 * 60 * 1000, // 3 hours,
+    maxAge: 365 * 24 * 60 * 60 * 1000, // a year
   },
 }));
 
@@ -102,7 +102,7 @@ app.use(session({
  * Custom middleware
  */
 function requireHttps(req: Request, res: Response, next: NextFunction) {
-  if (!req.secure) {
+  if (nodeEnv !== 'debug' && !req.secure) {
     res.status(405).send('405 - https required');
   } else {
     next();
@@ -168,7 +168,7 @@ app.get('/admin', (req: Request, res: Response) => {
     .then((result) => {
       const { isMember, isAdmin } = result;
       if (!isMember) {
-        res.render('login', { secure: req.secure });
+        res.render('login', { secure: req.secure || nodeEnv === 'debug' });
       } else {
         shortener.getAll()
           .then((shorts: LinkData[]) => {
@@ -416,4 +416,5 @@ app.all('*', (req: Request, res: Response) => {
  */
 app.listen(port, () => {
   logger.info(`Listening on port ${port}!`);
+  logger.info(`node_env: ${nodeEnv}`);
 });
