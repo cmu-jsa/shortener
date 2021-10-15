@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 - 2020
+ * Copyright 2019 - 2021
  * Japanese Student Association at Carnegie Mellon University.
  * All rights reserved. MIT license.
  */
@@ -15,6 +15,13 @@ import { promisify } from 'util';
 import { RedisClient } from 'redis';
 import bcrypt from 'bcrypt';
 
+export type Role = 'admin' | 'user';
+
+export interface UserInfo {
+  username: string;
+  role: Role;
+}
+
 export default class Users {
   // The redis database client to work off.
   private db: RedisClient;
@@ -22,8 +29,14 @@ export default class Users {
   // Declaring original hget wrapper for promisify.
   private hget: Function;
 
+  // Declaring original hgetall wrapper for promisify.
+  private hgetall: Function;
+
   // Declaring original hset wrapper for promisify.
   private hset: Function;
+
+  // Declaring original hset wrapper for promisify.
+  private hdel: Function;
 
   // Declaring original hexists wrapper for promisify.
   private hexists: Function;
@@ -37,7 +50,9 @@ export default class Users {
   constructor(db: RedisClient) {
     this.db = db;
     this.hget = promisify(db.hget).bind(db);
+    this.hgetall = promisify(db.hgetall).bind(db);
     this.hset = promisify(db.hset).bind(db);
+    this.hdel = promisify(db.hdel).bind(db);
     this.hexists = promisify(db.hexists).bind(db);
     this.genSalt = promisify(bcrypt.genSalt).bind(bcrypt);
     this.hash = promisify(bcrypt.hash).bind(bcrypt);
@@ -87,5 +102,45 @@ export default class Users {
     }
 
     return false;
+  }
+
+  async resetPassword(username: string, role: Role) {
+    if (role !== 'admin' && role !== 'user') {
+      return;
+    }
+
+    const salt = await this.genSalt(12);
+    const newPasswordHash = await this.hash('abcd', salt);
+    this.hset(role, username, newPasswordHash);
+  }
+
+  async addNewMember(username: string, password: string, admin = false) {
+    const table = admin ? 'admin' : 'user';
+    const salt = await this.genSalt(12);
+    const passwordHash = await this.hash(password, salt);
+    this.hset(table, username, passwordHash);
+  }
+
+  removeMember(username: string, role: Role) {
+    this.hdel(role, username);
+  }
+
+  async listAll() {
+    const result: UserInfo[] = [];
+    const admins = await this.hgetall('admin') || {};
+    const users = await this.hgetall('user') || {};
+    Object.keys(admins).forEach((username) => {
+      result.push({
+        username,
+        role: 'admin',
+      });
+    });
+    Object.keys(users).forEach((username) => {
+      result.push({
+        username,
+        role: 'user',
+      });
+    });
+    return result;
   }
 }

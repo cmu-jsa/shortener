@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 - 2020
+ * Copyright 2019 - 2021
  * Japanese Student Association at Carnegie Mellon University.
  * All rights reserved. MIT license.
  */
@@ -14,7 +14,6 @@ import express, {
   NextFunction,
 } from 'express';
 import basicAuth from 'express-basic-auth';
-import bodyParser from 'body-parser';
 import cors from 'cors';
 
 /**
@@ -49,7 +48,7 @@ export default class API {
 
   private setupRouter() {
     this.router.use(cors());
-    this.router.use(bodyParser.json());
+    this.router.use(express.json());
     this.router.use(basicAuth({
       authorizer: this.asyncAuthorizer,
       authorizeAsync: true,

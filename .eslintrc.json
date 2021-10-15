@@ -3,6 +3,7 @@
   "plugins": ["@typescript-eslint"],
   "extends": "airbnb-base",
   "rules": {
+    "import/extensions": "off",
     "no-console": "off",
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": "error",

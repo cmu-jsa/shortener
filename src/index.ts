@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 - 2020
+ * Copyright 2019 - 2021
  * Japanese Student Association at Carnegie Mellon University.
  * All rights reserved. MIT license.
  */
@@ -23,7 +23,6 @@ import express, {
 } from 'express';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
-import bodyParser from 'body-parser';
 import redis, { RedisClient } from 'redis';
 import isImage from 'is-image';
 
@@ -48,6 +47,7 @@ dotenv.config();
 const url: string = process.env.ROOT_URL || 'http://localhost:5000';
 const port: string = process.env.PORT || '5000';
 const redisURL: string = process.env.REDIS_URL || '';
+const nodeEnv: string = process.env.NODE_ENV || 'production';
 
 /**
  * App settings
@@ -84,8 +84,8 @@ setInterval(() => {
 app.use('/api', api);
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../favicon')));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(session({
   store: new RedisStore({
     client: db,
@@ -94,7 +94,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 3 * 60 * 60 * 1000, // 3 hours,
+    maxAge: 365 * 24 * 60 * 60 * 1000, // a year
   },
 }));
 
@@ -102,7 +102,7 @@ app.use(session({
  * Custom middleware
  */
 function requireHttps(req: Request, res: Response, next: NextFunction) {
-  if (!req.secure) {
+  if (nodeEnv !== 'debug' && !req.secure) {
     res.status(405).send('405 - https required');
   } else {
     next();
@@ -126,31 +126,42 @@ app.get('/', (req: Request, res: Response) => {
  * POST to home to register new original: short pair.
  */
 app.post('/', (req: Request, res: Response) => {
-  const original = req.body.original || '';
-  const short = req.body.short || shortener.makeShort();
-  logger.info(`Validating ${short}: ${original}`);
+  // @ts-ignore
+  const { username } = req.session;
+  users.checkMembership(username)
+    .then((membership) => {
+      const { isMember } = membership;
+      if (!isMember) {
+        res.render('login', { secure: req.secure });
+      } else {
+        const original = req.body.original || '';
+        const short = req.body.short || shortener.makeShort();
+        logger.info(`Validating ${short}: ${original}`);
 
-  // Validates input first
-  const result: ResultObj = shortener.validateInput(original, short);
-  if (!result.success) {
-    logger.warn(result.output);
-    res.render('index', {
-      error: result.output,
-      secure: req.secure,
-    });
+        // Validates input first
+        const result: ResultObj = shortener.validateInput(original, short);
+        if (!result.success) {
+          logger.warn(result.output);
+          res.render('index', {
+            error: result.output,
+            secure: req.secure,
+          });
 
-  // All checks have passed
-  } else {
-    // @ts-ignore
-    const { username } = req.session;
-    shortener.set(short, original, username);
-    logger.success('Succeeded in creating short');
-    res.render('index', {
-      original,
-      short,
-      secure: req.secure,
+        // All checks have passed
+        } else {
+          shortener.set(short, original, username);
+          logger.success('Succeeded in creating short');
+          res.render('index', {
+            original,
+            short,
+            secure: req.secure,
+          });
+        }
+      }
+    })
+    .catch(() => {
+      res.render('login', { secure: req.secure });
     });
-  }
 });
 
 /**
@@ -171,7 +182,7 @@ app.get('/admin', (req: Request, res: Response) => {
         res.render('login', { secure: req.secure });
       } else {
         shortener.getAll()
-          .then((shorts: LinkData[]) => {
+          .then(async (shorts: LinkData[]) => {
             // Sort based on number of views
             // eslint-disable-next-line arrow-body-style
             shorts.sort((a: LinkData, b: LinkData) => {
@@ -186,6 +197,7 @@ app.get('/admin', (req: Request, res: Response) => {
               username,
               adminSuccess,
               adminError,
+              users: await users.listAll(),
             });
           })
           .catch((err: Error) => {
@@ -347,6 +359,55 @@ app.post('/admin/denyList/remove', requireHttps, (req: Request, res: Response) =
 });
 
 /**
+ * POST to reset a password
+ */
+app.post('/admin/users/resetPassword', requireHttps, async (req: Request, res: Response) => {
+  // Check if the user is logged in as admin
+  // @ts-ignore
+  const result = await users.checkMembership(req.session.username);
+  if (result.isAdmin) {
+    users.resetPassword(req.body.username, req.body.role);
+  }
+
+  res.redirect('/admin');
+});
+
+/**
+ * POST to remove a user
+ */
+app.post('/admin/users/removeUser', requireHttps, async (req: Request, res: Response) => {
+  // Check if the user is logged in as admin
+  // @ts-ignore
+  const result = await users.checkMembership(req.session.username);
+  if (result.isAdmin) {
+    users.removeMember(req.body.username, req.body.role);
+  }
+
+  res.redirect('/admin');
+});
+
+/**
+ * POST to register a user
+ */
+app.post('/admin/users/registerUser', requireHttps, async (req: Request, res: Response) => {
+  // Check if the user is logged in as admin
+  // @ts-ignore
+  const result = await users.checkMembership(req.session.username);
+  if (result.isAdmin) {
+    const { username, tempPassword, isAdmin } = req.body;
+    if (username) {
+      await users.addNewMember(
+        username,
+        tempPassword,
+        isAdmin === 'on',
+      );
+    }
+  }
+
+  res.redirect('/admin');
+});
+
+/**
  * POST to log out.
  */
 app.post('/admin/logout', requireHttps, (req: Request, res: Response) => {
@@ -416,4 +477,5 @@ app.all('*', (req: Request, res: Response) => {
  */
 app.listen(port, () => {
   logger.info(`Listening on port ${port}!`);
+  logger.info(`node_env: ${nodeEnv}`);
 });
