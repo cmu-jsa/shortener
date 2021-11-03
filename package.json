@@ -28,7 +28,7 @@
     "is-image": "^3.0.0",
     "randomstring": "^1.1.5",
     "redis": "^3.1.1",
-    "validator": "^11.1.0"
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",
